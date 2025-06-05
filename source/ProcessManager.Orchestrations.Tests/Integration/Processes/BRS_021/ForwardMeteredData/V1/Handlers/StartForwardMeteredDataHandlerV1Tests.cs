@@ -59,6 +59,7 @@ public class StartForwardMeteredDataHandlerV1Tests
     : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
+
     private readonly Mock<ILogger<StartForwardMeteredDataHandlerV1>> _logger = new();
     private readonly Mock<IClock> _clock = new();
     private readonly Mock<IOptions<ProcessManagerOptions>> _options = new();
@@ -67,6 +68,7 @@ public class StartForwardMeteredDataHandlerV1Tests
     private readonly Mock<IMeteringPointMasterDataProvider> _meteringPointMasterDataProvider = new();
     private readonly Mock<IEnqueueActorMessagesClient> _enqueueActorMessagesClient = new();
     private readonly Mock<IElectricityMarketViews> _electricityMarketViews = new();
+
     private readonly Actor _actor = new(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider);
     private readonly MeteringPointId _meteringPointId = new("123456789012345678");
     private readonly ActorMessageId _actorMessageId = new(Guid.NewGuid().ToString());
@@ -96,51 +98,9 @@ public class StartForwardMeteredDataHandlerV1Tests
     {
         DbContext = _fixture.DatabaseManager.CreateDbContext();
 
-        await using var serviceProvider = new ServiceCollection()
-            .AddNodaTimeForApplication()
-            .AddBusinessValidation([typeof(Program).Assembly])
-            .BuildServiceProvider();
+        Sut = CreateStartForwardMeteredDataHandlerV1();
 
-        var orchestrationInstanceRepository = new OrchestrationInstanceRepository(DbContext);
-        Sut = new StartForwardMeteredDataHandlerV1(
-            _logger.Object,
-            new OrchestrationInstanceManager(
-                _clock.Object,
-                new DurableOrchestrationInstanceExecutor(
-                    Mock.Of<ILogger<DurableOrchestrationInstanceExecutor>>(),
-                    Mock.Of<IDurableClient>()),
-                new OrchestrationRegister(
-                    _options.Object,
-                    Mock.Of<ILogger<OrchestrationRegister>>(),
-                    DbContext),
-                orchestrationInstanceRepository,
-                _featureManager.Object,
-                _options.Object,
-                Mock.Of<ILogger<OrchestrationInstanceManager>>()),
-            new SendMeasurementsInstanceRepository(DbContext, Mock.Of<IFileStorageClient>()),
-            orchestrationInstanceRepository,
-            _clock.Object,
-            _measurementsClient.Object,
-            serviceProvider.GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>(),
-            _meteringPointMasterDataProvider.Object,
-            Mock.Of<IAdditionalMeasurementsRecipientsProvider>(),
-            _enqueueActorMessagesClient.Object,
-            _featureManager.Object,
-            new DelegationProvider(_electricityMarketViews.Object),
-            new TelemetryClient(new TelemetryConfiguration
-            {
-                TelemetryChannel = Mock.Of<ITelemetryChannel>(),
-            }));
-
-        // Disable all orchestration descriptions to ensure that only the one we add is used
-        await DbContext.OrchestrationDescriptions.ExecuteUpdateAsync(
-            (setter) => setter.SetProperty(od => od.IsEnabled, false));
-
-        OrchestrationDescription = new OrchestrationDescriptionBuilder().Build();
-        DbContext.OrchestrationDescriptions.Add(OrchestrationDescription);
-        await DbContext.SaveChangesAsync();
-
-        await Task.CompletedTask;
+        OrchestrationDescription = await CreateSendMeasurementsOrchestrationDescription();
     }
 
     public async Task DisposeAsync()
@@ -159,7 +119,8 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         _meteringPointMasterDataProvider
             .Setup(mpmdp => mpmdp.GetMasterData(_meteringPointId.Value, It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync([new MeteringPointMasterDataBuilder().BuildFromInput(input)]);
+            .ReturnsAsync([new MeteringPointMasterDataBuilder().BuildFromInput(input)])
+            .Verifiable(Times.Once);
 
         var idempotencyKey = IdempotencyKey.CreateNew();
 
@@ -170,12 +131,12 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleOrDefaultAsync(smi => smi.IdempotencyKey == idempotencyKey);
+            .SingleOrDefaultAsync(oi => oi.IdempotencyKey == idempotencyKey);
 
         Assert.NotNull(orchestrationInstance);
         Assert.Multiple(
             () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
-            () => Assert.Empty(orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).CustomState.SerializedValue),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).Lifecycle.TerminationState),
             () => Assert.Equal(StepInstanceLifecycleState.Running, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep).Lifecycle.State));
 
         // Measurements client should be called once
@@ -218,13 +179,14 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleOrDefaultAsync(smi => smi.IdempotencyKey == idempotencyKey);
+            .SingleOrDefaultAsync(oi => oi.IdempotencyKey == idempotencyKey);
 
         Assert.NotNull(orchestrationInstance);
         Assert.Multiple(
             () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
-            () => Assert.NotEmpty(orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).CustomState.SerializedValue),
             () => Assert.Equal(StepInstanceTerminationState.Failed, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).Lifecycle.TerminationState),
+            // Validation errors should be saved to the business validation step custom state
+            () => Assert.NotEmpty(orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).CustomState.SerializedValue),
             () => Assert.Equal(StepInstanceTerminationState.Skipped, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep).Lifecycle.TerminationState),
             () => Assert.Equal(StepInstanceLifecycleState.Running, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep).Lifecycle.State));
 
@@ -274,7 +236,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstances = await assertionDbContext.OrchestrationInstances
-            .Where(smi => smi.IdempotencyKey == idempotencyKey)
+            .Where(oi => oi.IdempotencyKey == idempotencyKey)
             .ToListAsync();
 
         // Only one instance should exist
@@ -302,7 +264,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         existingOrchestrationInstance.Lifecycle.TransitionToQueued(_clock.Object);
         existingOrchestrationInstance.Lifecycle.TransitionToRunning(_clock.Object);
 
-        // Set master data on custom state
+        // Set master data on custom state, since it should already be retrieved and set on the existing instance
         existingOrchestrationInstance.CustomState.SetFromInstance(new ForwardMeteredDataCustomStateV2(
             HistoricalMeteringPointMasterData: [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(
@@ -332,14 +294,18 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstances = await assertionDbContext.OrchestrationInstances
-            .Where(smi => smi.IdempotencyKey == idempotencyKey)
+            .Where(oi => oi.IdempotencyKey == idempotencyKey)
             .ToListAsync();
 
         // Only one instance should exist
-        var instance = Assert.Single(orchestrationInstances);
+        var orchestrationInstance = Assert.Single(orchestrationInstances);
 
         // The instance should be the already existing one
-        Assert.Equal(existingOrchestrationInstance.Id, instance.Id);
+        Assert.Multiple(
+            () => Assert.Equal(existingOrchestrationInstance.Id, orchestrationInstance.Id),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).Lifecycle.TerminationState),
+            () => Assert.Equal(StepInstanceLifecycleState.Running, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep).Lifecycle.State));
 
         // Measurements client should be called once
         _measurementsClient
@@ -364,8 +330,8 @@ public class StartForwardMeteredDataHandlerV1Tests
         {
             OrchestrationName = OrchestrationDescription.UniqueName.Name,
             OrchestrationVersion = OrchestrationDescription.UniqueName.Version,
-            ActorMessageId = Guid.NewGuid().ToString(),
-            TransactionId = Guid.NewGuid().ToString(),
+            ActorMessageId = _actorMessageId.Value,
+            TransactionId = _transactionId.Value,
             MeteringPointId = _meteringPointId.Value,
             StartedByActor = new StartOrchestrationInstanceActorV1
             {
@@ -396,5 +362,63 @@ public class StartForwardMeteredDataHandlerV1Tests
         instance.ParameterValue.SetFromInstance(input);
 
         return instance;
+    }
+
+    private async Task<OrchestrationDescription> CreateSendMeasurementsOrchestrationDescription()
+    {
+        await using var setupContext = _fixture.DatabaseManager.CreateDbContext();
+
+        // Disable all existing orchestration descriptions to ensure that only the one we add is used
+        var existingOrchestrationDescriptions = await setupContext.OrchestrationDescriptions
+            .ToListAsync();
+        existingOrchestrationDescriptions.ForEach(od => od.IsEnabled = false);
+
+        // Create a new orchestration description
+        var orchestrationDescription = new OrchestrationDescriptionBuilder().Build();
+        setupContext.OrchestrationDescriptions.Add(orchestrationDescription);
+
+        await setupContext.SaveChangesAsync();
+
+        return orchestrationDescription;
+    }
+
+    private StartForwardMeteredDataHandlerV1 CreateStartForwardMeteredDataHandlerV1()
+    {
+        using var serviceProvider = new ServiceCollection()
+            .AddNodaTimeForApplication()
+            .AddBusinessValidation([typeof(Program).Assembly])
+            .BuildServiceProvider();
+        var businessValidator = serviceProvider.GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
+
+        var orchestrationInstanceRepository = new OrchestrationInstanceRepository(DbContext);
+        return new StartForwardMeteredDataHandlerV1(
+            _logger.Object,
+            new OrchestrationInstanceManager(
+                _clock.Object,
+                new DurableOrchestrationInstanceExecutor(
+                    Mock.Of<ILogger<DurableOrchestrationInstanceExecutor>>(),
+                    Mock.Of<IDurableClient>()),
+                new OrchestrationRegister(
+                    _options.Object,
+                    Mock.Of<ILogger<OrchestrationRegister>>(),
+                    DbContext),
+                orchestrationInstanceRepository,
+                _featureManager.Object,
+                _options.Object,
+                Mock.Of<ILogger<OrchestrationInstanceManager>>()),
+            new SendMeasurementsInstanceRepository(DbContext, Mock.Of<IFileStorageClient>()),
+            orchestrationInstanceRepository,
+            _clock.Object,
+            _measurementsClient.Object,
+            businessValidator,
+            _meteringPointMasterDataProvider.Object,
+            Mock.Of<IAdditionalMeasurementsRecipientsProvider>(),
+            _enqueueActorMessagesClient.Object,
+            _featureManager.Object,
+            new DelegationProvider(_electricityMarketViews.Object),
+            new TelemetryClient(new TelemetryConfiguration
+            {
+                TelemetryChannel = Mock.Of<ITelemetryChannel>(),
+            }));
     }
 }

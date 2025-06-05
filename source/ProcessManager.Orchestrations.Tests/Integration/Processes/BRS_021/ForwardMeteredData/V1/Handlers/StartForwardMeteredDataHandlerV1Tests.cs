@@ -128,7 +128,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleOrDefaultAsync(smi => smi.IdempotencyKey == idempotencyKey);
+            .SingleOrDefaultAsync(oi => oi.IdempotencyKey == idempotencyKey);
 
         Assert.NotNull(orchestrationInstance);
         Assert.Multiple(
@@ -176,7 +176,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleOrDefaultAsync(smi => smi.IdempotencyKey == idempotencyKey);
+            .SingleOrDefaultAsync(oi => oi.IdempotencyKey == idempotencyKey);
 
         Assert.NotNull(orchestrationInstance);
         Assert.Multiple(
@@ -233,7 +233,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstances = await assertionDbContext.OrchestrationInstances
-            .Where(smi => smi.IdempotencyKey == idempotencyKey)
+            .Where(oi => oi.IdempotencyKey == idempotencyKey)
             .ToListAsync();
 
         // Only one instance should exist
@@ -291,7 +291,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
         var orchestrationInstances = await assertionDbContext.OrchestrationInstances
-            .Where(smi => smi.IdempotencyKey == idempotencyKey)
+            .Where(oi => oi.IdempotencyKey == idempotencyKey)
             .ToListAsync();
 
         // Only one instance should exist

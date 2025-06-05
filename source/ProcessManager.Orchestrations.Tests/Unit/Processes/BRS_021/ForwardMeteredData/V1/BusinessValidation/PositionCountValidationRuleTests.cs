@@ -30,6 +30,41 @@ public class PositionCountValidationRuleTests
     private readonly PositionCountValidationRule _sut = new();
 
     [Fact]
+    public async Task Given_EmptyMeteredData_When_Validate_Then_PositionCountError()
+    {
+        var inputV1 = new ForwardMeteredDataInputV1Builder()
+            .WithStartDateTime("2023-01-01T01:23:56Z")
+            .WithEndDateTime("2023-01-01T02:53:56Z")
+            .WithResolution(Resolution.QuarterHourly.Name)
+            .WithMeteredData([])
+            .Build();
+
+        var result = await _sut.ValidateAsync(
+            new ForwardMeteredDataBusinessValidatedDto(
+                inputV1,
+                [
+                    new MeteringPointMasterData(
+                        new MeteringPointId("123456789012345678"),
+                        DateTimeOffset.MinValue,
+                        DateTimeOffset.MaxValue,
+                        new GridAreaCode("804"),
+                        ActorNumber.Create("1111111111111"),
+                        [],
+                        ConnectionState.Connected,
+                        MeteringPointType.Consumption,
+                        MeteringPointSubType.Physical,
+                        Resolution.QuarterHourly,
+                        MeasurementUnit.KilowattHour,
+                        "productId",
+                        null,
+                        ActorNumber.Create("2222222222222")),
+                ]));
+
+        result.Should()
+            .Contain(PositionCountValidationRule.IncorrectNumberOfPositionsError(0, 6));
+    }
+
+    [Fact]
     public async Task Given_QuarterHourlyResolutionWithWrongPeriod_When_Validate_Then_ResidualError()
     {
         var inputV1 = new ForwardMeteredDataInputV1Builder()

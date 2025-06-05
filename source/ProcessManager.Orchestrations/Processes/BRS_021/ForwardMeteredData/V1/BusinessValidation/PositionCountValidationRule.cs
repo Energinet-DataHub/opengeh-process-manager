@@ -127,7 +127,7 @@ public class PositionCountValidationRule : IBusinessValidationRule<ForwardMetere
             errors.AddRange(DuplicatedPositionError(duplicates.Select(g => g.Key)));
         }
 
-        if (positions.First() != 1 || positions.Last() != positions.Count)
+        if (positions.FirstOrDefault() != 1 || positions.LastOrDefault() != positions.Count)
         {
             errors.AddRange(PositionsNotConsecutiveError(Enumerable.Range(1, positions.Count).Except(positions)));
         }

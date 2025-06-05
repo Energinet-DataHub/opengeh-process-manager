@@ -31,7 +31,8 @@ public class MeteringPointMasterDataBuilder
         string? gridAccessProvider = null,
         MeteringPointType? meteringPointType = null,
         ConnectionState? connectionState = null,
-        string? endDateTime = null)
+        string? endDateTime = null,
+        Resolution? resolution = null)
     {
         var start = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
         var end = InstantPatternWithOptionalSeconds.Parse(endDateTime ?? input.EndDateTime!).Value;
@@ -47,7 +48,7 @@ public class MeteringPointMasterDataBuilder
             ValidFrom: start.ToDateTimeOffset(),
             ValidTo: end.ToDateTimeOffset(),
             CurrentNeighborGridAreaOwners: [],
-            Resolution: Resolution.FromName(input.Resolution!),
+            Resolution: resolution ?? Resolution.FromName(input.Resolution!),
             ProductId: "product",
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create("1111111111112"));

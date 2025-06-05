@@ -175,7 +175,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         Assert.NotNull(orchestrationInstance);
         Assert.Multiple(
             () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
-            () => Assert.Empty(orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).CustomState.SerializedValue),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).Lifecycle.TerminationState),
             () => Assert.Equal(StepInstanceLifecycleState.Running, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep).Lifecycle.State));
 
         // Measurements client should be called once
@@ -223,8 +223,9 @@ public class StartForwardMeteredDataHandlerV1Tests
         Assert.NotNull(orchestrationInstance);
         Assert.Multiple(
             () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
-            () => Assert.NotEmpty(orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).CustomState.SerializedValue),
             () => Assert.Equal(StepInstanceTerminationState.Failed, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).Lifecycle.TerminationState),
+            // Validation errors should be saved to the business validation step custom state
+            () => Assert.NotEmpty(orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).CustomState.SerializedValue),
             () => Assert.Equal(StepInstanceTerminationState.Skipped, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep).Lifecycle.TerminationState),
             () => Assert.Equal(StepInstanceLifecycleState.Running, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep).Lifecycle.State));
 
@@ -302,7 +303,7 @@ public class StartForwardMeteredDataHandlerV1Tests
         existingOrchestrationInstance.Lifecycle.TransitionToQueued(_clock.Object);
         existingOrchestrationInstance.Lifecycle.TransitionToRunning(_clock.Object);
 
-        // Set master data on custom state
+        // Set master data on custom state, since it should already be retrieved and set on the existing instance
         existingOrchestrationInstance.CustomState.SetFromInstance(new ForwardMeteredDataCustomStateV2(
             HistoricalMeteringPointMasterData: [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(
@@ -336,10 +337,14 @@ public class StartForwardMeteredDataHandlerV1Tests
             .ToListAsync();
 
         // Only one instance should exist
-        var instance = Assert.Single(orchestrationInstances);
+        var orchestrationInstance = Assert.Single(orchestrationInstances);
 
         // The instance should be the already existing one
-        Assert.Equal(existingOrchestrationInstance.Id, instance.Id);
+        Assert.Multiple(
+            () => Assert.Equal(existingOrchestrationInstance.Id, orchestrationInstance.Id),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
+            () => Assert.Equal(StepInstanceTerminationState.Succeeded, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep).Lifecycle.TerminationState),
+            () => Assert.Equal(StepInstanceLifecycleState.Running, orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep).Lifecycle.State));
 
         // Measurements client should be called once
         _measurementsClient

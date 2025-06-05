@@ -98,9 +98,6 @@ public class StartForwardMeteredDataHandlerV1Tests
     private ProcessManagerContext? DbContext { get; set; }
 
     [NotNull]
-    private OrchestrationDescription? OrchestrationDescription { get; set; }
-
-    [NotNull]
     private StartForwardMeteredDataHandlerV1? Sut { get; set; }
 
     public async Task InitializeAsync()
@@ -109,7 +106,7 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         Sut = CreateStartForwardMeteredDataHandlerV1();
 
-        OrchestrationDescription = await CreateSendMeasurementsOrchestrationDescription();
+        await Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
@@ -334,8 +331,8 @@ public class StartForwardMeteredDataHandlerV1Tests
     {
         var startOrchestrationInstance = new StartOrchestrationInstanceV1
         {
-            OrchestrationName = OrchestrationDescription.UniqueName.Name,
-            OrchestrationVersion = OrchestrationDescription.UniqueName.Version,
+            OrchestrationName = Brs_021_ForwardedMeteredData.V1.Name,
+            OrchestrationVersion = Brs_021_ForwardedMeteredData.V1.Version,
             ActorMessageId = _actorMessageId.Value,
             TransactionId = _transactionId.Value,
             MeteringPointId = _meteringPointId.Value,
@@ -361,24 +358,6 @@ public class StartForwardMeteredDataHandlerV1Tests
             idempotencyKey: idempotencyKey);
 
         return instance;
-    }
-
-    private async Task<OrchestrationDescription> CreateSendMeasurementsOrchestrationDescription()
-    {
-        await using var setupContext = _fixture.DatabaseManager.CreateDbContext();
-
-        // Disable all existing orchestration descriptions to ensure that only the one we add is used
-        var existingOrchestrationDescriptions = await setupContext.OrchestrationDescriptions
-            .ToListAsync();
-        existingOrchestrationDescriptions.ForEach(od => od.IsEnabled = false);
-
-        // Create a new orchestration description
-        var orchestrationDescription = new OrchestrationDescriptionBuilder().Build();
-        setupContext.OrchestrationDescriptions.Add(orchestrationDescription);
-
-        await setupContext.SaveChangesAsync();
-
-        return orchestrationDescription;
     }
 
     private StartForwardMeteredDataHandlerV1 CreateStartForwardMeteredDataHandlerV1()

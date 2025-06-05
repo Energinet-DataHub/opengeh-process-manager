@@ -98,8 +98,7 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         Sut = CreateStartForwardMeteredDataHandlerV1();
 
-        // Disable all orchestration descriptions to ensure that only the one we add is used
-        await CreateSendMeasurementsOrchestrationDescription();
+        OrchestrationDescription = await CreateSendMeasurementsOrchestrationDescription();
     }
 
     public async Task DisposeAsync()
@@ -362,15 +361,22 @@ public class StartForwardMeteredDataHandlerV1Tests
         return instance;
     }
 
-    private async Task CreateSendMeasurementsOrchestrationDescription()
+    private async Task<OrchestrationDescription> CreateSendMeasurementsOrchestrationDescription()
     {
         await using var setupContext = _fixture.DatabaseManager.CreateDbContext();
-        await setupContext.OrchestrationDescriptions.ExecuteUpdateAsync(
-            (setter) => setter.SetProperty(od => od.IsEnabled, false));
 
-        OrchestrationDescription = new OrchestrationDescriptionBuilder().Build();
-        setupContext.OrchestrationDescriptions.Add(OrchestrationDescription);
+        // Disable all existing orchestration descriptions to ensure that only the one we add is used
+        var existingOrchestrationDescriptions = await setupContext.OrchestrationDescriptions
+            .ToListAsync();
+        existingOrchestrationDescriptions.ForEach(od => od.IsEnabled = false);
+
+        // Create a new orchestration description
+        var orchestrationDescription = new OrchestrationDescriptionBuilder().Build();
+        setupContext.OrchestrationDescriptions.Add(orchestrationDescription);
+
         await setupContext.SaveChangesAsync();
+
+        return orchestrationDescription;
     }
 
     private StartForwardMeteredDataHandlerV1 CreateStartForwardMeteredDataHandlerV1()

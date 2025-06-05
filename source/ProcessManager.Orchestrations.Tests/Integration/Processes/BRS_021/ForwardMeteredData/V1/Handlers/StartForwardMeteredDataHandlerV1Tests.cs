@@ -59,6 +59,7 @@ public class StartForwardMeteredDataHandlerV1Tests
     : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
+
     private readonly Mock<ILogger<StartForwardMeteredDataHandlerV1>> _logger = new();
     private readonly Mock<IClock> _clock = new();
     private readonly Mock<IOptions<ProcessManagerOptions>> _options = new();
@@ -67,6 +68,7 @@ public class StartForwardMeteredDataHandlerV1Tests
     private readonly Mock<IMeteringPointMasterDataProvider> _meteringPointMasterDataProvider = new();
     private readonly Mock<IEnqueueActorMessagesClient> _enqueueActorMessagesClient = new();
     private readonly Mock<IElectricityMarketViews> _electricityMarketViews = new();
+
     private readonly Actor _actor = new(ActorNumber.Create("1234567890123"), ActorRole.GridAccessProvider);
     private readonly MeteringPointId _meteringPointId = new("123456789012345678");
     private readonly ActorMessageId _actorMessageId = new(Guid.NewGuid().ToString());
@@ -328,8 +330,8 @@ public class StartForwardMeteredDataHandlerV1Tests
         {
             OrchestrationName = OrchestrationDescription.UniqueName.Name,
             OrchestrationVersion = OrchestrationDescription.UniqueName.Version,
-            ActorMessageId = Guid.NewGuid().ToString(),
-            TransactionId = Guid.NewGuid().ToString(),
+            ActorMessageId = _actorMessageId.Value,
+            TransactionId = _transactionId.Value,
             MeteringPointId = _meteringPointId.Value,
             StartedByActor = new StartOrchestrationInstanceActorV1
             {

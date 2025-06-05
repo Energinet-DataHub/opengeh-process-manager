@@ -50,6 +50,9 @@ public class SendMeasurementsInstance
         TransactionId = transactionId;
         MeteringPointId = meteringPointId;
 
+        MasterData = new SerializedValueType();
+        ValidationErrors = new SerializedValueType();
+
         IdempotencyKey = idempotencyKey.ToHash();
     }
 
@@ -80,11 +83,19 @@ public class SendMeasurementsInstance
 
     public MeteringPointId? MeteringPointId { get; }
 
+    public SerializedValueType MasterData { get; }
+
+    public SerializedValueType ValidationErrors { get; }
+
     public Instant? SentToMeasurementsAt { get; private set; }
+
+    public bool IsSentToMeasurements => SentToMeasurementsAt is not null;
 
     public Instant? ReceivedFromMeasurementsAt { get; private set; }
 
     public Instant? SentToEnqueueActorMessagesAt { get; private set; }
+
+    public bool IsSentToEnqueueActorMessagesAt => SentToEnqueueActorMessagesAt is not null;
 
     public Instant? ReceivedFromEnqueueActorMessagesAt { get; private set; }
 

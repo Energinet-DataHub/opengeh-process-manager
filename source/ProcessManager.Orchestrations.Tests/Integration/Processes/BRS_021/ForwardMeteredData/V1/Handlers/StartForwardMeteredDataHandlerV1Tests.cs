@@ -117,7 +117,8 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         _meteringPointMasterDataProvider
             .Setup(mpmdp => mpmdp.GetMasterData(_meteringPointId.Value, It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync([new MeteringPointMasterDataBuilder().BuildFromInput(input)]);
+            .ReturnsAsync([new MeteringPointMasterDataBuilder().BuildFromInput(input)])
+            .Verifiable(Times.Once);
 
         var idempotencyKey = IdempotencyKey.CreateNew();
 

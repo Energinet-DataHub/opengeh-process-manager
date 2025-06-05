@@ -471,7 +471,7 @@ public class StartForwardMeteredDataHandlerV1(
     {
         // If already sent to measurements, then validation has already been performed,
         // so we return the existing validation errors (if any).
-        if (sendMeasurementsInstance.IsSentToMeasurements)
+        if (sendMeasurementsInstance.IsBusinessValidationPerformed)
         {
             return sendMeasurementsInstance.ValidationErrors.IsEmpty
                 ? []
@@ -516,10 +516,11 @@ public class StartForwardMeteredDataHandlerV1(
 
         var validationSuccess = validationErrors.Count == 0;
         if (!validationSuccess)
-        {
             sendMeasurementsInstance.ValidationErrors.SetFromInstance(validationErrors);
-            await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
-        }
+        else
+            sendMeasurementsInstance.MarkAsBusinessValidationSucceeded(_clock.GetCurrentInstant());
+
+        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
 
         return validationErrors;
     }
@@ -672,6 +673,9 @@ public class StartForwardMeteredDataHandlerV1(
                         .ToList(),
                     MeteringPointId: forwardMeteredDataInput.MeteringPointId!))
             .ConfigureAwait(false);
+
+        orchestrationInstance.MarkAsSentToEnqueueActorMessages(_clock.GetCurrentInstant());
+        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
     private MeasurementsForMeteringPoint MapInputToMeasurements(

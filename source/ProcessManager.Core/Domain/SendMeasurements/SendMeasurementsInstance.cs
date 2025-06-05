@@ -26,6 +26,8 @@ namespace Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 /// </summary>
 public class SendMeasurementsInstance
 {
+    private const int ErrorTextMaxLength = 1000;
+
     /// <summary>
     /// Creates a new instance of <see cref="SendMeasurementsInstance"/>.
     /// </summary>
@@ -87,6 +89,14 @@ public class SendMeasurementsInstance
 
     public SerializedValueType ValidationErrors { get; }
 
+    public Instant? BusinessValidationSucceededAt { get; private set; }
+
+    public bool IsBusinessValidationSucceeded => BusinessValidationSucceededAt != null && ValidationErrors.IsEmpty;
+
+    public bool IsBusinessValidationFailed => !ValidationErrors.IsEmpty;
+
+    public bool IsBusinessValidationPerformed => IsBusinessValidationSucceeded || IsBusinessValidationFailed;
+
     public Instant? SentToMeasurementsAt { get; private set; }
 
     public bool IsSentToMeasurements => SentToMeasurementsAt is not null;
@@ -103,7 +113,7 @@ public class SendMeasurementsInstance
 
     public Instant? FailedAt { get; private set; }
 
-    [MaxLength(1000)]
+    [MaxLength(ErrorTextMaxLength)]
     public string? ErrorText { get; private set; }
 
     public SendMeasurementsInstanceLifecycle Lifecycle => new SendMeasurementsInstanceLifecycle(
@@ -124,11 +134,46 @@ public class SendMeasurementsInstance
     /// </remarks>
     internal byte[]? RowVersion { get; }
 
+    public void MarkAsBusinessValidationSucceeded(Instant businessValidationSucceededAt)
+    {
+        if (BusinessValidationSucceededAt is not null)
+            throw new InvalidOperationException($"Cannot mark instance as business validation succeeded (Id={Id.Value}, BusinessValidationSucceededAt={InstantPattern.General.Format(BusinessValidationSucceededAt.Value)}).");
+
+        BusinessValidationSucceededAt = businessValidationSucceededAt;
+    }
+
     public void MarkAsSentToMeasurements(Instant sentToMeasurementsAt)
     {
         if (SentToMeasurementsAt is not null)
             throw new InvalidOperationException($"Cannot mark instance as sent to a measurements (Id={Id.Value}, SentToMeasurementsAt={InstantPattern.General.Format(SentToMeasurementsAt.Value)}).");
 
         SentToMeasurementsAt = sentToMeasurementsAt;
+    }
+
+    public void MarkAsSentToEnqueueActorMessages(Instant sentToEnqueueActorMessagesAt)
+    {
+        if (SentToEnqueueActorMessagesAt is not null)
+            throw new InvalidOperationException($"Cannot mark instance as sent to a enqueue actor messages (Id={Id.Value}, SentToEnqueueActorMessagesAt={InstantPattern.General.Format(SentToEnqueueActorMessagesAt.Value)}).");
+
+        SentToEnqueueActorMessagesAt = sentToEnqueueActorMessagesAt;
+    }
+
+    public void MarkAsTerminated(Instant terminatedAt)
+    {
+        if (TerminatedAt is not null)
+            throw new InvalidOperationException($"Cannot mark instance as terminated (Id={Id.Value}, TerminatedAt={InstantPattern.General.Format(TerminatedAt.Value)}).");
+
+        TerminatedAt = terminatedAt;
+    }
+
+    public void MarkAsFailed(Instant failedAt, string errorText)
+    {
+        MarkAsTerminated(failedAt);
+
+        if (FailedAt is not null)
+            throw new InvalidOperationException($"Cannot mark instance as failed (Id={Id.Value}, FailedAt={InstantPattern.General.Format(FailedAt.Value)}).");
+
+        FailedAt = failedAt;
+        ErrorText = errorText.Substring(0, ErrorTextMaxLength);
     }
 }

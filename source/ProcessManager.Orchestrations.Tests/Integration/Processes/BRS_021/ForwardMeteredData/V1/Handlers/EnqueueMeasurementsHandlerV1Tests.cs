@@ -179,7 +179,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         // Arrange
         var orchestrationInstance = CreateRunningOrchestrationInstance();
 
-        // Simulate that the orchestration instance is already has terminated the ForwardToMeasurementsStep and
+        // Simulate that the orchestration instance has terminated the ForwardToMeasurementsStep and
         // is stuck at the EnqueueActorMessages step
         orchestrationInstance.TransitionStepToTerminated(
             sequence: OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,

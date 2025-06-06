@@ -114,7 +114,7 @@ public class StartForwardMeteredDataHandlerV1(
                 meteringPointId)
             .ConfigureAwait(false);
 
-        // If the orchestration instance is terminated, do nothing (idempotency/retry check).
+        // If the instance is terminated, do nothing (idempotency/retry check).
         if (instance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)
             return;
 
@@ -161,6 +161,7 @@ public class StartForwardMeteredDataHandlerV1(
         {
             // Skip step: Forward to Measurements
             // Skip step: Find receiver
+            // Perform step: Enqueue rejected actor message
             await EnqueueRejectedActorMessage(
                     instance,
                     input,
@@ -168,7 +169,7 @@ public class StartForwardMeteredDataHandlerV1(
                 .ConfigureAwait(false);
         }
 
-        // The orchestration instance is now in a state where it either:
+        // The instance is now in a state where it either:
         // - Waits for a notify response from measurements on the event hub.
         // - Waits for a rejected actor messages enqueued notify response on the service bus.
     }

@@ -143,7 +143,7 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store if needed
         if (instance.MasterData.IsEmpty)
         {
-            var customState = GetMeteringPointMasterDataCustomStateAsync(input);
+            var customState = await GetMeteringPointMasterDataCustomStateAsync(input).ConfigureAwait(false);
             instance.MasterData.SetFromInstance(customState);
             await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
@@ -523,7 +523,7 @@ public class StartForwardMeteredDataHandlerV1(
                         .ToList()))
             .ConfigureAwait(false);
 
-        if (!validationErrors.Any())
+        if (validationErrors.Any())
             instance.ValidationErrors.SetFromInstance(validationErrors);
         else
             instance.MarkAsBusinessValidationSucceeded(_clock.GetCurrentInstant());

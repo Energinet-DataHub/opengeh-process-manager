@@ -64,6 +64,23 @@ internal class SendMeasurementsInstanceEntityConfiguration : IEntityTypeConfigur
                     ? new MeteringPointId(dbValue)
                     : null);
 
+        builder.ComplexProperty(
+            o => o.MasterData,
+            csb =>
+            {
+                csb.Property(cs => cs.SerializedValue)
+                    .HasColumnName(nameof(SendMeasurementsInstance.MasterData));
+            });
+
+        builder.ComplexProperty(
+            o => o.ValidationErrors,
+            csb =>
+            {
+                csb.Property(cs => cs.SerializedValue)
+                    .HasColumnName(nameof(SendMeasurementsInstance.ValidationErrors));
+            });
+
+        builder.Property(o => o.BusinessValidationSucceededAt);
         builder.Property(o => o.SentToMeasurementsAt);
         builder.Property(o => o.ReceivedFromMeasurementsAt);
 

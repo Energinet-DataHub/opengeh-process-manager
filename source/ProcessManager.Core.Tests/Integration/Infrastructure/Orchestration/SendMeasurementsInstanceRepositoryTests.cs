@@ -116,11 +116,11 @@ public class SendMeasurementsInstanceRepositoryTests :
             await writeDbContext.SaveChangesAsync();
         }
 
-        var sentToMeasurementsAt = Instant.FromUtc(2025, 01, 01, 01, 01);
+        var businessValidationSucceededAt = Instant.FromUtc(2025, 01, 01, 01, 01);
 
         // Act
         var instanceToUpdate = await _sut.GetAsync(instance.Id);
-        instanceToUpdate.MarkAsSentToMeasurements(sentToMeasurementsAt);
+        instanceToUpdate.MarkAsBusinessValidationSucceeded(businessValidationSucceededAt);
 
         await _sut.UnitOfWork.CommitAsync();
 
@@ -129,7 +129,7 @@ public class SendMeasurementsInstanceRepositoryTests :
         var repository = new SendMeasurementsInstanceRepository(readDbContext, _fileStorageClient);
         var actual = await repository.GetAsync(instance.Id);
 
-        Assert.Equal(sentToMeasurementsAt, actual.SentToMeasurementsAt);
+        Assert.Equal(businessValidationSucceededAt, actual.BusinessValidationSucceededAt);
     }
 
     [Fact]
@@ -146,13 +146,13 @@ public class SendMeasurementsInstanceRepositoryTests :
 
         // => First consumer (sut)
         var actual01 = await _sut.GetAsync(instance.Id);
-        actual01.MarkAsSentToMeasurements(Instant.FromUtc(2025, 01, 01, 01, 01));
+        actual01.MarkAsBusinessValidationSucceeded(Instant.FromUtc(2025, 01, 01, 01, 01));
 
         // => Second consumer (sut02)
         await using var dbContext02 = _fixture.DatabaseManager.CreateDbContext();
         var sut02 = new SendMeasurementsInstanceRepository(dbContext02, _fileStorageClient);
         var actual02 = await sut02.GetAsync(instance.Id);
-        actual02.MarkAsSentToMeasurements(Instant.FromUtc(2026, 02, 02, 02, 02));
+        actual02.MarkAsBusinessValidationSucceeded(Instant.FromUtc(2026, 02, 02, 02, 02));
 
         await _sut.UnitOfWork.CommitAsync();
 

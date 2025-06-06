@@ -477,7 +477,7 @@ public class StartForwardMeteredDataHandlerV1(
                 : instance.ValidationErrors.AsType<IReadOnlyCollection<ValidationError>>();
         }
 
-        // Fetch metering point master data and store received data used to find receiver later in the orchestration
+        // Fetch metering point master data and store received data used to find receiver later.
         var forwardMeteredDataCustomState = instance.MasterData.AsType<ForwardMeteredDataCustomStateV2>();
 
         var delegationResult = await IsIncomingMeteredDataDelegated(

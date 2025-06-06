@@ -139,18 +139,18 @@ public class StartForwardMeteredDataHandlerV1Tests
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
-        var oldOrchestrationInstance = await assertionDbContext.OrchestrationInstances
+        var orchestrationInstance = await assertionDbContext.OrchestrationInstances
             .SingleOrDefaultAsync(oi => oi.IdempotencyKey == idempotencyKey);
 
-        var orchestrationInstance = await assertionDbContext.SendMeasurementsInstances
+        var sendMeasurementsInstance = await assertionDbContext.SendMeasurementsInstances
             .SingleOrDefaultAsync(smi => smi.IdempotencyKey == idempotencyKey.ToHash());
 
-        Assert.NotNull(orchestrationInstance);
+        Assert.NotNull(sendMeasurementsInstance);
         Assert.Multiple(
-            () => Assert.Null(oldOrchestrationInstance),
-            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
-            () => Assert.True(orchestrationInstance.IsBusinessValidationSucceeded),
-            () => Assert.True(orchestrationInstance.IsSentToMeasurements));
+            () => Assert.Null(orchestrationInstance),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, sendMeasurementsInstance.Lifecycle.State),
+            () => Assert.True(sendMeasurementsInstance.IsBusinessValidationSucceeded),
+            () => Assert.True(sendMeasurementsInstance.IsSentToMeasurements));
 
         // Measurements client should be called once
         _measurementsClient
@@ -191,25 +191,25 @@ public class StartForwardMeteredDataHandlerV1Tests
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
-        var orchestrationInstance = await assertionDbContext.SendMeasurementsInstances
+        var sendMeasurementsInstance = await assertionDbContext.SendMeasurementsInstances
             .SingleOrDefaultAsync(oi => oi.IdempotencyKey == idempotencyKey.ToHash());
 
-        Assert.NotNull(orchestrationInstance);
+        Assert.NotNull(sendMeasurementsInstance);
         Assert.Multiple(
-            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, orchestrationInstance.Lifecycle.State),
-            () => Assert.False(orchestrationInstance.IsBusinessValidationSucceeded),
-            () => Assert.True(orchestrationInstance.IsBusinessValidationFailed),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, sendMeasurementsInstance.Lifecycle.State),
+            () => Assert.False(sendMeasurementsInstance.IsBusinessValidationSucceeded),
+            () => Assert.True(sendMeasurementsInstance.IsBusinessValidationFailed),
             // Validation errors should be saved to the validation errors property
-            () => Assert.NotEmpty(orchestrationInstance.ValidationErrors.SerializedValue),
-            () => Assert.False(orchestrationInstance.IsSentToMeasurements, "Should not be sent to measurements when validation fails"),
-            () => Assert.True(orchestrationInstance.IsSentToEnqueueActorMessagesAt, "Rejected actor message should be enqueued"));
+            () => Assert.NotEmpty(sendMeasurementsInstance.ValidationErrors.SerializedValue),
+            () => Assert.False(sendMeasurementsInstance.IsSentToMeasurements, "Should not be sent to measurements when validation fails"),
+            () => Assert.True(sendMeasurementsInstance.IsSentToEnqueueActorMessagesAt, "Rejected actor message should be enqueued"));
 
         // Enqueue actor messages client should be called once to enqueue the rejected message
         _enqueueActorMessagesClient.Verify(
             eamc => eamc.EnqueueAsync(
                 Brs_021_ForwardedMeteredData.V1,
-                orchestrationInstance.Id.Value,
-                new ActorIdentityDto(orchestrationInstance.CreatedByActorNumber, orchestrationInstance.CreatedByActorRole),
+                sendMeasurementsInstance.Id.Value,
+                new ActorIdentityDto(sendMeasurementsInstance.CreatedByActorNumber, sendMeasurementsInstance.CreatedByActorRole),
                 It.IsAny<Guid>(),
                 It.IsAny<ForwardMeteredDataRejectedV1>()),
             Times.Once);
@@ -250,15 +250,15 @@ public class StartForwardMeteredDataHandlerV1Tests
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
-        var instances = await assertionDbContext.SendMeasurementsInstances
+        var sendMeasurementsInstances = await assertionDbContext.SendMeasurementsInstances
             .Where(oi => oi.IdempotencyKey == idempotencyKey.ToHash())
             .ToListAsync();
 
         // Only one instance should exist
-        var instance = Assert.Single(instances);
+        var sendMeasurementsInstance = Assert.Single(sendMeasurementsInstances);
 
         // The instance should be the already existing one
-        Assert.Equal(existingInstance.Id, instance.Id);
+        Assert.Equal(existingInstance.Id, sendMeasurementsInstance.Id);
 
         // No clients should be called
         _meteringPointMasterDataProvider.VerifyNoOtherCalls();
@@ -298,20 +298,20 @@ public class StartForwardMeteredDataHandlerV1Tests
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
 
-        var instances = await assertionDbContext.SendMeasurementsInstances
+        var sendMeasurementsInstances = await assertionDbContext.SendMeasurementsInstances
             .Where(oi => oi.IdempotencyKey == idempotencyKey.ToHash())
             .ToListAsync();
 
         // Only one instance should exist
-        var instance = Assert.Single(instances);
+        var sendMeasurementsInstance = Assert.Single(sendMeasurementsInstances);
 
         // The instance should be the already existing one
         Assert.Multiple(
-            () => Assert.Equal(existingInstance.Id, instance.Id),
-            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, instance.Lifecycle.State),
-            () => Assert.True(instance.IsBusinessValidationSucceeded),
-            () => Assert.Empty(instance.ValidationErrors.SerializedValue),
-            () => Assert.NotNull(instance.SentToMeasurementsAt));
+            () => Assert.Equal(existingInstance.Id, sendMeasurementsInstance.Id),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, sendMeasurementsInstance.Lifecycle.State),
+            () => Assert.True(sendMeasurementsInstance.IsBusinessValidationSucceeded),
+            () => Assert.Empty(sendMeasurementsInstance.ValidationErrors.SerializedValue),
+            () => Assert.NotNull(sendMeasurementsInstance.SentToMeasurementsAt));
 
         // Measurements client should be called once
         _measurementsClient
@@ -353,14 +353,14 @@ public class StartForwardMeteredDataHandlerV1Tests
 
     private SendMeasurementsInstance CreateExistingInstance(IdempotencyKey idempotencyKey)
     {
-        var instance = new SendMeasurementsInstance(
+        var sendMeasurementsInstance = new SendMeasurementsInstance(
             createdAt: _clock.Object.GetCurrentInstant(),
             createdBy: _actor,
             transactionId: _transactionId,
             meteringPointId: _meteringPointId,
             idempotencyKey: idempotencyKey);
 
-        return instance;
+        return sendMeasurementsInstance;
     }
 
     private StartForwardMeteredDataHandlerV1 CreateStartForwardMeteredDataHandlerV1()

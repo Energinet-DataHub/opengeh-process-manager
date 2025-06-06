@@ -60,6 +60,7 @@ public class StartForwardMeteredDataHandlerV1Tests
     : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ServiceProvider _serviceProvider;
 
     private readonly Mock<ILogger<StartForwardMeteredDataHandlerV1>> _logger = new();
     private readonly Mock<IClock> _clock = new();
@@ -87,6 +88,11 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         _featureManager.Setup(fm => fm.IsEnabledAsync(FeatureFlagNames.UseNewSendMeasurementsTable))
             .ReturnsAsync(true);
+
+        _serviceProvider = new ServiceCollection()
+            .AddNodaTimeForApplication()
+            .AddBusinessValidation([typeof(Program).Assembly])
+            .BuildServiceProvider();
     }
 
     [NotNull]
@@ -108,6 +114,8 @@ public class StartForwardMeteredDataHandlerV1Tests
     {
         if (DbContext != null) // DbContext can be null if InitializeAsync fails
             await DbContext.DisposeAsync();
+
+        await _serviceProvider.DisposeAsync();
     }
 
     [Fact]
@@ -357,11 +365,7 @@ public class StartForwardMeteredDataHandlerV1Tests
 
     private StartForwardMeteredDataHandlerV1 CreateStartForwardMeteredDataHandlerV1()
     {
-        using var serviceProvider = new ServiceCollection()
-            .AddNodaTimeForApplication()
-            .AddBusinessValidation([typeof(Program).Assembly])
-            .BuildServiceProvider();
-        var businessValidator = serviceProvider.GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
+        var businessValidator = _serviceProvider.GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
 
         var orchestrationInstanceRepository = new OrchestrationInstanceRepository(DbContext);
         return new StartForwardMeteredDataHandlerV1(

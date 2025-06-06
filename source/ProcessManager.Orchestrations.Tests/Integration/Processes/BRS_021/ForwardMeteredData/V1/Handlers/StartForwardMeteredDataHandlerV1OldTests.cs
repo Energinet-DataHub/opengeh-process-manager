@@ -55,10 +55,16 @@ using TelemetryConfiguration = Microsoft.ApplicationInsights.Extensibility.Telem
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
+/// <summary>
+/// This is a copy of the existing <see cref="StartForwardMeteredDataHandlerV1Tests"/>, to test the "old"
+/// method of persisting the BRS-021 Send Measurements as an <see cref="OrchestrationInstance"/>. This class should
+/// be removed when the old way is also removed.
+/// </summary>
 public class StartForwardMeteredDataHandlerV1OldTests
     : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ServiceProvider _serviceProvider;
 
     private readonly Mock<ILogger<StartForwardMeteredDataHandlerV1>> _logger = new();
     private readonly Mock<IClock> _clock = new();
@@ -83,6 +89,11 @@ public class StartForwardMeteredDataHandlerV1OldTests
             {
                 AllowStartingOrchestrationsUnderDevelopment = true,
             });
+
+        _serviceProvider = new ServiceCollection()
+            .AddNodaTimeForApplication()
+            .AddBusinessValidation([typeof(Program).Assembly])
+            .BuildServiceProvider();
     }
 
     [NotNull]
@@ -100,13 +111,15 @@ public class StartForwardMeteredDataHandlerV1OldTests
 
         Sut = CreateStartForwardMeteredDataHandlerV1();
 
-        OrchestrationDescription = await CreateSendMeasurementsOrchestrationDescription();
+        OrchestrationDescription = await CreateSendMeasurementsOrchestrationDescriptionAsync();
     }
 
     public async Task DisposeAsync()
     {
         if (DbContext != null) // DbContext can be null if InitializeAsync fails
             await DbContext.DisposeAsync();
+
+        await _serviceProvider.DisposeAsync();
     }
 
     [Fact]
@@ -364,7 +377,7 @@ public class StartForwardMeteredDataHandlerV1OldTests
         return instance;
     }
 
-    private async Task<OrchestrationDescription> CreateSendMeasurementsOrchestrationDescription()
+    private async Task<OrchestrationDescription> CreateSendMeasurementsOrchestrationDescriptionAsync()
     {
         await using var setupContext = _fixture.DatabaseManager.CreateDbContext();
 
@@ -384,11 +397,7 @@ public class StartForwardMeteredDataHandlerV1OldTests
 
     private StartForwardMeteredDataHandlerV1 CreateStartForwardMeteredDataHandlerV1()
     {
-        using var serviceProvider = new ServiceCollection()
-            .AddNodaTimeForApplication()
-            .AddBusinessValidation([typeof(Program).Assembly])
-            .BuildServiceProvider();
-        var businessValidator = serviceProvider.GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
+        var businessValidator = _serviceProvider.GetRequiredService<BusinessValidator<ForwardMeteredDataBusinessValidatedDto>>();
 
         var orchestrationInstanceRepository = new OrchestrationInstanceRepository(DbContext);
         return new StartForwardMeteredDataHandlerV1(

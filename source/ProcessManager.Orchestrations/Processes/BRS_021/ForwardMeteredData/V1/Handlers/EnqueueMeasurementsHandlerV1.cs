@@ -16,30 +16,73 @@ using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
+using Microsoft.FeatureManagement;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
 public class EnqueueMeasurementsHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
+    ISendMeasurementsInstanceRepository sendMeasurementsInstanceRepository,
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
-    TelemetryClient telemetryClient)
+    TelemetryClient telemetryClient,
+    IFeatureManager featureManager)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly ISendMeasurementsInstanceRepository _sendMeasurementsInstanceRepository = sendMeasurementsInstanceRepository;
     private readonly IClock _clock = clock;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
+    private readonly IFeatureManager _featureManager = featureManager;
 
-    public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
+    public async Task HandleAsync(Guid id)
+    {
+        var useNewSendMeasurementsTable = await _featureManager.UseNewSendMeasurementsTable().ConfigureAwait(false);
+        if (!useNewSendMeasurementsTable)
+        {
+            await HandleUsingOrchestrationInstanceAsync(new OrchestrationInstanceId(id)).ConfigureAwait(false);
+            return;
+        }
+
+        var instanceId = SendMeasurementsInstanceId.FromExisting(id);
+        var instance = await _sendMeasurementsInstanceRepository
+            .GetAsync(instanceId)
+            .ConfigureAwait(false);
+
+        // If the orchestration instance is terminated, do nothing (idempotency/retry check).
+        if (instance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)
+            return;
+
+        // only valid data will be enqueued
+        var input = _sendMeasurementsInstanceRepository.DownloadInput(instance.FileStorageReference);
+        var forwardMeteredDataInput = ForwardMeteredDataValidInput.From(instance.ParameterValue.AsType<ForwardMeteredDataInputV1>());
+
+        await TerminateForwardToMeasurementStep(instance).ConfigureAwait(false);
+
+        // Start Step: Find receiver step
+        var receiversWithMeteredData = await FindReceivers(instance, forwardMeteredDataInput).ConfigureAwait(false);
+
+        // Start Step: Enqueue actor messages step
+        await EnqueueAcceptedActorMessagesAsync(
+                instance,
+                forwardMeteredDataInput,
+                receiversWithMeteredData)
+            .ConfigureAwait(false);
+    }
+
+    public async Task HandleUsingOrchestrationInstanceAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(orchestrationInstanceId)

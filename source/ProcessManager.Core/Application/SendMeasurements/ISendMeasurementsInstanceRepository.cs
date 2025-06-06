@@ -42,4 +42,6 @@ public interface ISendMeasurementsInstanceRepository
     /// Get existing orchestration instance by transaction id (used for idempotency key).
     /// </summary>
     Task<SendMeasurementsInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey);
+
+    Task<ForwardMeteredDataInputV1> DownloadInputAsync(SendMeasurementsInputFileStorageReference reference);
 }

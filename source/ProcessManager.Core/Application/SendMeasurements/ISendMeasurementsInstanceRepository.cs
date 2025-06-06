@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
@@ -42,4 +43,6 @@ public interface ISendMeasurementsInstanceRepository
     /// Get existing orchestration instance by transaction id (used for idempotency key).
     /// </summary>
     Task<SendMeasurementsInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey);
+
+    Task<ReadOnceStream> DownloadInputAsync(SendMeasurementsInputFileStorageReference reference, CancellationToken cancellationToken = default);
 }

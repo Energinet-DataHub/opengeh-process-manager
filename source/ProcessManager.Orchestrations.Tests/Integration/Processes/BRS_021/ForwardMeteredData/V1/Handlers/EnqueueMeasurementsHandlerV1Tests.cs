@@ -17,6 +17,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
+using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -31,11 +32,12 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_0
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 using Moq;
 using NodaTime;
 using StepInstanceTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.StepInstanceTerminationState;
+using TelemetryConfiguration = Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -44,7 +46,9 @@ public class EnqueueMeasurementsHandlerV1Tests
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
     private readonly Mock<IClock> _clock = new();
+    private readonly Mock<IFeatureManager> _featureManager = new();
     private readonly Mock<IEnqueueActorMessagesClient> _enqueueActorMessagesClient = new();
+    private readonly Mock<IFileStorageClient> _fileStorageClient = new();
 
     private readonly Instant _now = Instant.FromUtc(2025, 06, 06, 13, 37);
     private readonly MeteringPointId _meteringPointId = new("123456789012345678");
@@ -76,13 +80,15 @@ public class EnqueueMeasurementsHandlerV1Tests
 
         Sut = new EnqueueMeasurementsHandlerV1(
             new OrchestrationInstanceRepository(DbContext),
+            new SendMeasurementsInstanceRepository(DbContext, _fileStorageClient.Object),
             _clock.Object,
             _enqueueActorMessagesClient.Object,
             new MeteringPointReceiversProvider(DateTimeZone.Utc),
             new TelemetryClient(new TelemetryConfiguration
             {
                 TelemetryChannel = Mock.Of<ITelemetryChannel>(),
-            }));
+            }),
+            _featureManager.Object);
 
         await Task.CompletedTask;
     }
@@ -106,7 +112,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id);
+        await Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
@@ -159,7 +165,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id);
+        await Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         _enqueueActorMessagesClient.Verify(
@@ -197,7 +203,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id);
+        await Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
@@ -240,7 +246,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id);
+        await Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
@@ -268,7 +274,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         }
 
         // Act
-        var act = () => Sut.HandleAsync(orchestrationInstance.Id);
+        var act = () => Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await Assert.ThrowsAsync<InvalidOperationException>(act);
@@ -308,7 +314,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         }
 
         // Act
-        var act = () => Sut.HandleAsync(orchestrationInstance.Id);
+        var act = () => Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await Assert.ThrowsAsync<InvalidOperationException>(act);
@@ -327,7 +333,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_OrchestrationInstanceDoesntExist_When_HandleAsync_Then_ThrowsException()
     {
         // Act
-        var act = () => Sut.HandleAsync(new OrchestrationInstanceId(Guid.NewGuid()));
+        var act = () => Sut.HandleAsync(Guid.NewGuid());
 
         // Assert
         await Assert.ThrowsAsync<NullReferenceException>(act);

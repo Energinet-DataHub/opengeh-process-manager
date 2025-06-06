@@ -202,7 +202,7 @@ public class StartForwardMeteredDataHandlerV1Tests
             // Validation errors should be saved to the validation errors property
             () => Assert.NotEmpty(sendMeasurementsInstance.ValidationErrors.SerializedValue),
             () => Assert.False(sendMeasurementsInstance.IsSentToMeasurements, "Should not be sent to measurements when validation fails"),
-            () => Assert.True(sendMeasurementsInstance.IsSentToEnqueueActorMessagesAt, "Rejected actor message should be enqueued"));
+            () => Assert.True(sendMeasurementsInstance.IsSentToEnqueueActorMessages, "Rejected actor message should be enqueued"));
 
         // Enqueue actor messages client should be called once to enqueue the rejected message
         _enqueueActorMessagesClient.Verify(

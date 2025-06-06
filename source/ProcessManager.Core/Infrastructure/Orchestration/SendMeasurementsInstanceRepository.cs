@@ -53,4 +53,9 @@ internal class SendMeasurementsInstanceRepository(
         return _dbContext.SendMeasurementsInstances
             .SingleOrDefaultAsync(i => i.IdempotencyKey == idempotencyKey.ToHash());
     }
+
+    public Task<ReadOnceStream> DownloadInputAsync(SendMeasurementsInputFileStorageReference reference, CancellationToken cancellationToken)
+    {
+        return _fileStorageClient.DownloadAsync(reference, cancellationToken);
+    }
 }

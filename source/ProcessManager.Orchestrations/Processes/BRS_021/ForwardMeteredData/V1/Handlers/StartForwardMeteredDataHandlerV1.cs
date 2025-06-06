@@ -121,8 +121,7 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store if needed
         if (instance.MasterData.IsEmpty)
         {
-            var historicalMeteringPointMasterData =
-                await _meteringPointMasterDataProvider
+            var historicalMeteringPointMasterData = await _meteringPointMasterDataProvider
                 .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
                 .ConfigureAwait(false);
 

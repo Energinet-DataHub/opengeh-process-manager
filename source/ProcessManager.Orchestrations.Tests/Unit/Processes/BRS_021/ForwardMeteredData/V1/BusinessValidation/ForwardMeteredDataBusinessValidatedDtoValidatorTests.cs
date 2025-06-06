@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
@@ -139,7 +140,7 @@ public class ForwardMeteredDataBusinessValidatedDtoValidatorTests
         var meteringPointMasterData = new MeteringPointMasterDataBuilder()
             .BuildFromInput(
                 input,
-                gridAccessProvider: "9999999999999"); // Different owner in master data compared to the input
+                gridAccessProvider: ActorNumber.Create("9999999999999")); // Different owner in master data compared to the input
 
         var result = await _sut.ValidateAsync(
             new ForwardMeteredDataBusinessValidatedDto(

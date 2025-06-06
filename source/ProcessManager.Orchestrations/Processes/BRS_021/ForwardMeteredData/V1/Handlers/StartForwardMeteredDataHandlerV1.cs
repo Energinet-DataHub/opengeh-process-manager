@@ -581,6 +581,9 @@ public class StartForwardMeteredDataHandlerV1(
         if (orchestrationInstance.IsSentToMeasurements)
             return;
 
+        if (!orchestrationInstance.IsBusinessValidationSucceeded)
+            throw new InvalidOperationException("Cannot send to measurements if business validation isn't succeeded.");
+
         await _measurementsClient.SendAsync(
                 MapInputToMeasurements(orchestrationInstance.Id.Value, input),
                 CancellationToken.None)

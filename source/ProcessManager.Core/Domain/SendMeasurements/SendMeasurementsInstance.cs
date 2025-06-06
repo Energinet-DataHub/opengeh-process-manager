@@ -147,6 +147,9 @@ public class SendMeasurementsInstance
         if (SentToMeasurementsAt is not null)
             throw new InvalidOperationException($"Cannot mark instance as sent to a measurements (Id={Id.Value}, SentToMeasurementsAt={InstantPattern.General.Format(SentToMeasurementsAt.Value)}).");
 
+        if (!IsBusinessValidationSucceeded)
+            throw new InvalidOperationException($"Cannot mark instance as sent to measurements if business validation isn't succeeded (Id={Id.Value}).");
+
         SentToMeasurementsAt = sentToMeasurementsAt;
     }
 

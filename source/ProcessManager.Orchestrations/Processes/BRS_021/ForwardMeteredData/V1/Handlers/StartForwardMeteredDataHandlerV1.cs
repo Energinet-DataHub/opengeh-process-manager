@@ -323,7 +323,7 @@ public class StartForwardMeteredDataHandlerV1(
         // Creates an orchestration instance (if it doesn't exist) and transitions it to queued state.
         var orchestrationInstanceId = await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                OrchestrationDescriptionBuilder.UniqueName.MapToDomain(),
+                Brs_021_ForwardedMeteredData.V1.MapToDomain(),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),
@@ -637,7 +637,7 @@ public class StartForwardMeteredDataHandlerV1(
         var actorIdentity = ((ActorIdentity)orchestrationInstance.Lifecycle.CreatedBy.Value).Actor;
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                OrchestrationDescriptionBuilder.UniqueName,
+                Brs_021_ForwardedMeteredData.V1,
                 orchestrationInstance.Id.Value,
                 new ActorIdentityDto(
                     ActorNumber.Create(actorIdentity.Number.Value),
@@ -661,7 +661,7 @@ public class StartForwardMeteredDataHandlerV1(
         IReadOnlyCollection<ValidationError> validationErrors)
     {
         // If the step is already terminated (idempotency/retry check), do nothing.
-        if (instance.IsSentToEnqueueActorMessagesAt)
+        if (instance.IsSentToEnqueueActorMessages)
             return;
 
         // Ensure always using the same idempotency key. Messages will only be enqueued once per instance,
@@ -669,13 +669,13 @@ public class StartForwardMeteredDataHandlerV1(
         var idempotencyKey = instance.Id.Value;
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                OrchestrationDescriptionBuilder.UniqueName,
-                instance.Id.Value,
-                new ActorIdentityDto(
+                orchestration: Brs_021_ForwardedMeteredData.V1,
+                orchestrationInstanceId: instance.Id.Value,
+                orchestrationStartedBy: new ActorIdentityDto(
                     instance.CreatedByActorNumber,
                     instance.CreatedByActorRole),
-                idempotencyKey,
-                new ForwardMeteredDataRejectedV1(
+                idempotencyKey: idempotencyKey,
+                data: new ForwardMeteredDataRejectedV1(
                     forwardMeteredDataInput.ActorMessageId,
                     forwardMeteredDataInput.TransactionId,
                     ForwardedForActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole),

@@ -41,7 +41,12 @@ using TelemetryConfiguration = Microsoft.ApplicationInsights.Extensibility.Telem
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
-public class EnqueueMeasurementsHandlerV1Tests
+/// <summary>
+/// This is a copy of the existing <see cref="EnqueueMeasurementsHandlerV1Tests"/>, to test the "old"
+/// method of persisting the BRS-021 Send Measurements as an <see cref="OrchestrationInstance"/>. This class should
+/// be removed when the old way is also removed.
+/// </summary>
+public class EnqueueMeasurementsHandlerV1OldTests
     : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
@@ -56,7 +61,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     private readonly ActorNumber _gridAccessProvider = ActorNumber.Create("1111111111111");
     private readonly ActorNumber _energySupplier = ActorNumber.Create("1111111111112");
 
-    public EnqueueMeasurementsHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
+    public EnqueueMeasurementsHandlerV1OldTests(ProcessManagerDatabaseFixture fixture)
     {
         _fixture = fixture;
 

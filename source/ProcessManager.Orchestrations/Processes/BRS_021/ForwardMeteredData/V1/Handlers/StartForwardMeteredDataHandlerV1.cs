@@ -93,19 +93,41 @@ public class StartForwardMeteredDataHandlerV1(
         string? meteringPointId)
     {
         var useNewSendMeasurementsTable = await _featureManager.UseNewSendMeasurementsTable().ConfigureAwait(false);
-        if (!useNewSendMeasurementsTable)
+
+        if (useNewSendMeasurementsTable)
+        {
+            await StartSendMeasurementsInstanceAsync(
+                    actorIdentity: actorIdentity,
+                    input: input,
+                    idempotencyKey: idempotencyKey,
+                    transactionId: transactionId,
+                    meteringPointId: meteringPointId)
+                .ConfigureAwait(false);
+        }
+        else
         {
             await StartOrchestrationInstanceOldAsync(
-                    actorIdentity,
-                    input,
-                    idempotencyKey,
-                    actorMessageId,
-                    transactionId,
-                    meteringPointId)
+                    actorIdentity: actorIdentity,
+                    input: input,
+                    idempotencyKey: idempotencyKey,
+                    actorMessageId: actorMessageId,
+                    transactionId: transactionId,
+                    meteringPointId: meteringPointId)
                 .ConfigureAwait(false);
-            return;
         }
 
+        // The instance is now in a state where it either:
+        // - Waits for a notify response from measurements on the event hub.
+        // - Waits for a rejected actor messages enqueued notify response on the service bus.
+    }
+
+    private async Task StartSendMeasurementsInstanceAsync(
+        ActorIdentity actorIdentity,
+        ForwardMeteredDataInputV1 input,
+        string idempotencyKey,
+        string transactionId,
+        string? meteringPointId)
+    {
         var instance = await InitializeSendMeasurementsInstanceAsync(
                 actorIdentity.Actor,
                 input,
@@ -121,28 +143,13 @@ public class StartForwardMeteredDataHandlerV1(
         // Fetch metering point master data and store if needed
         if (instance.MasterData.IsEmpty)
         {
-            var historicalMeteringPointMasterData = await _meteringPointMasterDataProvider
-                .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
-                .ConfigureAwait(false);
-
-            var additionalRecipients = await _featureManager.AreAdditionalRecipientsEnabled().ConfigureAwait(false)
-                ? await _additionalMeasurementsRecipientsProvider
-                    .GetAdditionalRecipients(new Components.MeteringPointMasterData.Model.MeteringPointId(input.MeteringPointId!))
-                    .ToListAsync()
-                    .ConfigureAwait(false)
-                : [];
-
-            var customState = new ForwardMeteredDataCustomStateV2(
-                HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData
-                    .FromMeteringPointMasterData(historicalMeteringPointMasterData),
-                AdditionalRecipients: additionalRecipients);
-
+            var customState = await GetMeteringPointMasterDataCustomStateAsync(input).ConfigureAwait(false);
             instance.MasterData.SetFromInstance(customState);
             await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 
         // Perform step: Business validation
-        var validationErrors = await PerformBusinessValidation(
+        var validationErrors = await PerformBusinessValidationAsync(
                 instance: instance,
                 input: input)
             .ConfigureAwait(false);
@@ -151,7 +158,7 @@ public class StartForwardMeteredDataHandlerV1(
         if (validationSuccess)
         {
             // Perform step: Forward to Measurements
-            await ForwardToMeasurements(
+            await ForwardToMeasurementsAsync(
                     ForwardMeteredDataValidInput.From(input),
                     instance)
                 .ConfigureAwait(false);
@@ -161,30 +168,12 @@ public class StartForwardMeteredDataHandlerV1(
             // Skip step: Forward to Measurements
             // Skip step: Find receiver
             // Perform step: Enqueue rejected actor message
-            await EnqueueRejectedActorMessage(
+            await EnqueueRejectedActorMessageAsync(
                     instance,
                     input,
                     validationErrors)
                 .ConfigureAwait(false);
         }
-
-        // The instance is now in a state where it either:
-        // - Waits for a notify response from measurements on the event hub.
-        // - Waits for a rejected actor messages enqueued notify response on the service bus.
-    }
-
-    private static Actor GetStartedByActor(
-        OrchestrationInstance orchestrationInstance)
-    {
-        var orchestrationStartedBy = orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto();
-        return orchestrationStartedBy switch
-        {
-            ActorIdentityDto actor => new Actor(actor.ActorNumber, actor.ActorRole),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(orchestrationStartedBy),
-                orchestrationStartedBy.GetType().Name,
-                "Unknown enqueuedBy type"),
-        };
     }
 
     private async Task StartOrchestrationInstanceOldAsync(
@@ -217,44 +206,28 @@ public class StartForwardMeteredDataHandlerV1(
                 $"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
         }
 
-        var forwardMeteredDataInput = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
+        input = orchestrationInstance.ParameterValue.AsType<ForwardMeteredDataInputV1>();
 
         // Fetch metering point master data and store if needed
         if (orchestrationInstance.CustomState.IsEmpty)
         {
-            var historicalMeteringPointMasterData =
-                await _meteringPointMasterDataProvider
-                .GetMasterData(input.MeteringPointId!, input.StartDateTime, input.EndDateTime!)
-                .ConfigureAwait(false);
-
-            var additionalRecipients = await _featureManager.AreAdditionalRecipientsEnabled().ConfigureAwait(false)
-                ? await _additionalMeasurementsRecipientsProvider
-                    .GetAdditionalRecipients(new Components.MeteringPointMasterData.Model.MeteringPointId(input.MeteringPointId!))
-                    .ToListAsync()
-                    .ConfigureAwait(false)
-                : [];
-
-            var customState = new ForwardMeteredDataCustomStateV2(
-                HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData
-                    .FromMeteringPointMasterData(historicalMeteringPointMasterData),
-                AdditionalRecipients: additionalRecipients);
-
+            var customState = await GetMeteringPointMasterDataCustomStateAsync(input).ConfigureAwait(false);
             orchestrationInstance.CustomState.SetFromInstance(customState);
 
             await _progressRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
 
         // Perform step: Business validation
-        var validationErrors = await PerformBusinessValidation(
+        var validationErrors = await PerformBusinessValidationAsync(
                 orchestrationInstance: orchestrationInstance,
-                input: forwardMeteredDataInput)
+                input: input)
             .ConfigureAwait(false);
 
         var validationSuccess = validationErrors.Count == 0;
         if (validationSuccess)
         {
             // Perform step: Forward to Measurements
-            await ForwardToMeasurements(
+            await ForwardToMeasurementsAsync(
                     ForwardMeteredDataValidInput.From(input),
                     orchestrationInstance)
                 .ConfigureAwait(false);
@@ -284,9 +257,9 @@ public class StartForwardMeteredDataHandlerV1(
                     .ConfigureAwait(false);
             }
 
-            await EnqueueRejectedActorMessage(
+            await EnqueueRejectedActorMessageAsync(
                     orchestrationInstance,
-                    forwardMeteredDataInput,
+                    input,
                     validationErrors)
                 .ConfigureAwait(false);
         }
@@ -296,10 +269,49 @@ public class StartForwardMeteredDataHandlerV1(
         // - Waits for a rejected actor messages enqueued notify response on the service bus.
     }
 
+    private Actor GetStartedByActor(
+        OrchestrationInstance orchestrationInstance)
+    {
+        var orchestrationStartedBy = orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto();
+        return orchestrationStartedBy switch
+        {
+            ActorIdentityDto actor => new Actor(actor.ActorNumber, actor.ActorRole),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(orchestrationStartedBy),
+                orchestrationStartedBy.GetType().Name,
+                $"Unknown {nameof(orchestrationStartedBy)} type"),
+        };
+    }
+
+    private async Task<ForwardMeteredDataCustomStateV2> GetMeteringPointMasterDataCustomStateAsync(ForwardMeteredDataInputV1 input)
+    {
+        var historicalMeteringPointMasterData =
+            input.MeteringPointId is not null
+                ? await _meteringPointMasterDataProvider
+                    .GetMasterData(
+                        input.MeteringPointId,
+                        input.StartDateTime,
+                        input.EndDateTime!)
+                    .ConfigureAwait(false)
+                : [];
+
+        var additionalRecipients = await _featureManager.AreAdditionalRecipientsEnabled().ConfigureAwait(false)
+            ? await _additionalMeasurementsRecipientsProvider
+                .GetAdditionalRecipients(new Components.MeteringPointMasterData.Model.MeteringPointId(input.MeteringPointId!))
+                .ToListAsync()
+                .ConfigureAwait(false)
+            : [];
+
+        return new ForwardMeteredDataCustomStateV2(
+            HistoricalMeteringPointMasterData: ForwardMeteredDataCustomStateV2.MasterData
+                .FromMeteringPointMasterData(historicalMeteringPointMasterData),
+            AdditionalRecipients: additionalRecipients);
+    }
+
     /// <summary>
     /// Create an orchestration instance (if it doesn't already exist), and transition it to running.
-    /// <remarks>If the orchestration instance already exists, and is already running or terminated, this method does nothing.</remarks>
     /// </summary>
+    /// <remarks>If the orchestration instance already exists, and is already running or terminated, this method does nothing.</remarks>
     private async Task<OrchestrationInstance> InitializeOrchestrationInstance(
         ActorIdentity actorIdentity,
         ForwardMeteredDataInputV1 input,
@@ -341,8 +353,8 @@ public class StartForwardMeteredDataHandlerV1(
 
     /// <summary>
     /// Create a Send Measurements instance (if it doesn't already exist), and returns it.
-    /// <remarks>If the Send Measurements instance already exists, the existing instance is returned.</remarks>
     /// </summary>
+    /// <remarks>If the Send Measurements instance already exists, the existing instance is returned.</remarks>
     private async Task<SendMeasurementsInstance> InitializeSendMeasurementsInstanceAsync(
         Actor actor,
         ForwardMeteredDataInputV1 input,
@@ -376,7 +388,7 @@ public class StartForwardMeteredDataHandlerV1(
     /// <summary>
     /// Perform business validation. If the step has already run, the existing validation errors are returned.
     /// </summary>
-    private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidation(
+    private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidationAsync(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 input)
     {
@@ -407,10 +419,9 @@ public class StartForwardMeteredDataHandlerV1(
                 $"Validation step must be running (Id={validationStep.Id}, State={validationStep.Lifecycle.State}).");
         }
 
-        // Fetch metering point master data and store received data used to find receiver later in the orchestration
         var forwardMeteredDataCustomState = orchestrationInstance.CustomState.AsType<ForwardMeteredDataCustomStateV2>();
 
-        var delegationResult = await IsIncomingMeteredDataDelegated(
+        var delegationResult = await IsIncomingMeteredDataDelegatedAsync(
                 GetStartedByActor(orchestrationInstance),
                 forwardMeteredDataCustomState)
             .ConfigureAwait(false);
@@ -465,7 +476,7 @@ public class StartForwardMeteredDataHandlerV1(
         return validationErrors;
     }
 
-    private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidation(
+    private async Task<IReadOnlyCollection<ValidationError>> PerformBusinessValidationAsync(
         SendMeasurementsInstance instance,
         ForwardMeteredDataInputV1 input)
     {
@@ -477,10 +488,9 @@ public class StartForwardMeteredDataHandlerV1(
                 : instance.ValidationErrors.AsType<IReadOnlyCollection<ValidationError>>();
         }
 
-        // Fetch metering point master data and store received data used to find receiver later.
         var forwardMeteredDataCustomState = instance.MasterData.AsType<ForwardMeteredDataCustomStateV2>();
 
-        var delegationResult = await IsIncomingMeteredDataDelegated(
+        var delegationResult = await IsIncomingMeteredDataDelegatedAsync(
                 createdBy: new Actor(
                     instance.CreatedByActorNumber,
                     instance.CreatedByActorRole),
@@ -513,8 +523,7 @@ public class StartForwardMeteredDataHandlerV1(
                         .ToList()))
             .ConfigureAwait(false);
 
-        var validationSuccess = validationErrors.Count == 0;
-        if (!validationSuccess)
+        if (validationErrors.Any())
             instance.ValidationErrors.SetFromInstance(validationErrors);
         else
             instance.MarkAsBusinessValidationSucceeded(_clock.GetCurrentInstant());
@@ -524,7 +533,7 @@ public class StartForwardMeteredDataHandlerV1(
         return validationErrors;
     }
 
-    private async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> IsIncomingMeteredDataDelegated(
+    private async Task<(bool ShouldBeDelegated, string? DelegatedFromActorNumber)> IsIncomingMeteredDataDelegatedAsync(
         Actor createdBy,
         ForwardMeteredDataCustomStateV2 customState)
     {
@@ -544,7 +553,7 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
     }
 
-    private async Task ForwardToMeasurements(
+    private async Task ForwardToMeasurementsAsync(
         ForwardMeteredDataValidInput input,
         OrchestrationInstance orchestrationInstance)
     {
@@ -572,7 +581,7 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
     }
 
-    private async Task ForwardToMeasurements(
+    private async Task ForwardToMeasurementsAsync(
         ForwardMeteredDataValidInput input,
         SendMeasurementsInstance instance)
     {
@@ -592,7 +601,7 @@ public class StartForwardMeteredDataHandlerV1(
         await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 
-    private async Task EnqueueRejectedActorMessage(
+    private async Task EnqueueRejectedActorMessageAsync(
         OrchestrationInstance orchestrationInstance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
         IReadOnlyCollection<ValidationError> validationErrors)
@@ -646,7 +655,7 @@ public class StartForwardMeteredDataHandlerV1(
             .ConfigureAwait(false);
     }
 
-    private async Task EnqueueRejectedActorMessage(
+    private async Task EnqueueRejectedActorMessageAsync(
         SendMeasurementsInstance instance,
         ForwardMeteredDataInputV1 forwardMeteredDataInput,
         IReadOnlyCollection<ValidationError> validationErrors)

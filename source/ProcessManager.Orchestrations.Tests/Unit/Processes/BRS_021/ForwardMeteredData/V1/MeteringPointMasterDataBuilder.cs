@@ -28,10 +28,11 @@ public class MeteringPointMasterDataBuilder
         ForwardMeteredDataInputV1 input,
         MeteringPointSubType? meteringPointSubType = null,
         MeasurementUnit? measurementUnit = null,
-        string? gridAccessProvider = null,
+        ActorNumber? gridAccessProvider = null,
         MeteringPointType? meteringPointType = null,
         ConnectionState? connectionState = null,
-        string? endDateTime = null)
+        string? endDateTime = null,
+        ActorNumber? energySupplier = null)
     {
         var start = InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value;
         var end = InstantPatternWithOptionalSeconds.Parse(endDateTime ?? input.EndDateTime!).Value;
@@ -39,7 +40,7 @@ public class MeteringPointMasterDataBuilder
         return new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId(input.MeteringPointId!),
             CurrentGridAreaCode: new GridAreaCode("804"),
-            CurrentGridAccessProvider: gridAccessProvider != null ? ActorNumber.Create(gridAccessProvider) : ActorNumber.Create(input.GridAccessProviderNumber),
+            CurrentGridAccessProvider: gridAccessProvider ?? ActorNumber.Create(input.GridAccessProviderNumber),
             ConnectionState: connectionState ?? ConnectionState.Connected,
             MeteringPointType: meteringPointType ?? MeteringPointType.FromName(input.MeteringPointType!),
             MeteringPointSubType: meteringPointSubType ?? MeteringPointSubType.Physical,
@@ -50,6 +51,6 @@ public class MeteringPointMasterDataBuilder
             Resolution: Resolution.FromName(input.Resolution!),
             ProductId: "product",
             ParentMeteringPointId: null,
-            EnergySupplier: ActorNumber.Create("1111111111112"));
+            EnergySupplier: energySupplier ?? ActorNumber.Create("1111111111112"));
     }
 }

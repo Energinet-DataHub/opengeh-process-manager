@@ -92,7 +92,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_RunningOrchestrationInstance_When_Handled_Then_ActorMessagesAreEnqueued()
+    public async Task Given_RunningOrchestrationInstance_When_HandleAsync_Then_ActorMessagesAreEnqueued()
     {
         // Arrange
         var orchestrationInstance = CreateRunningOrchestrationInstance();
@@ -118,10 +118,85 @@ public class EnqueueMeasurementsHandlerV1Tests
                     m.OriginalActorMessageId == _actorMessageId &&
                     HasCorrectReceivers(m))),
             Times.Once);
+        _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Given_TerminatedOrchestrationInstance_When_Handled_Then_NothingHappens()
+    public async Task Given_RunningOrchestrationInstance_AndGiven_AlreadyHasEnqueueIdempotencyKey_When_HandleAsync_Then_ActorMessagesAreEnqueuedWithSameIdempotencyKey()
+    {
+        // Arrange
+        var orchestrationInstance = CreateRunningOrchestrationInstance();
+
+        var enqueueIdempotencyKey = Guid.NewGuid();
+        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
+        enqueueStep.CustomState.SetFromInstance(
+            new EnqueueActorMessagesStepCustomStateV1(
+                IdempotencyKey: enqueueIdempotencyKey));
+
+        await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            setupContext.OrchestrationInstances.Add(orchestrationInstance);
+            await setupContext.SaveChangesAsync();
+        }
+
+        // Act
+        await Sut.HandleAsync(orchestrationInstance.Id);
+
+        // Assert
+        _enqueueActorMessagesClient.Verify(
+            client => client.EnqueueAsync(
+                Brs_021_ForwardedMeteredData.V1,
+                orchestrationInstance.Id.Value,
+                orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
+                enqueueIdempotencyKey,
+                It.IsAny<ForwardMeteredDataAcceptedV1>()),
+            Times.Once);
+        _enqueueActorMessagesClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceStuckAtEnqueueActorMessages_When_HandleAsync_Then_ActorMessagesAreEnqueued()
+    {
+        // Arrange
+        var orchestrationInstance = CreateRunningOrchestrationInstance();
+
+        // Simulate that the orchestration instance is already has terminated the ForwardToMeasurementsStep and
+        // is stuck at the EnqueueActorMessages step
+        orchestrationInstance.TransitionStepToTerminated(
+            sequence: OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,
+            StepInstanceTerminationState.Succeeded,
+            _clock.Object);
+
+        orchestrationInstance.TransitionStepToRunning(
+            sequence: OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
+            _clock.Object);
+
+        await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
+        {
+            setupContext.OrchestrationInstances.Add(orchestrationInstance);
+            await setupContext.SaveChangesAsync();
+        }
+
+        // Act
+        await Sut.HandleAsync(orchestrationInstance.Id);
+
+        // Assert
+        _enqueueActorMessagesClient.Verify(
+            client => client.EnqueueAsync(
+                Brs_021_ForwardedMeteredData.V1,
+                orchestrationInstance.Id.Value,
+                orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
+                It.IsAny<Guid>(),
+                It.Is<ForwardMeteredDataAcceptedV1>(m =>
+                    m.MeteringPointId == _meteringPointId.Value &&
+                    m.OriginalActorMessageId == _actorMessageId &&
+                    HasCorrectReceivers(m))),
+            Times.Once);
+        _enqueueActorMessagesClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Given_TerminatedOrchestrationInstance_When_HandleAsync_Then_NothingHappens()
     {
         // Arrange
         var orchestrationInstance = CreateTerminatedOrchestrationInstance();
@@ -140,7 +215,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_QueuedOrchestrationInstance_When_Handled_Then_ExceptionIsThrown_AndThen_ActorMessagesNotEnqueued()
+    public async Task Given_QueuedOrchestrationInstance_When_HandleAsync_Then_ThrowsException_AndThen_ActorMessagesNotEnqueued()
     {
         // Arrange
         var orchestrationInstance = CreateOrchestrationInstance();
@@ -157,6 +232,17 @@ public class EnqueueMeasurementsHandlerV1Tests
 
         // Assert
         await Assert.ThrowsAsync<InvalidOperationException>(act);
+        _enqueueActorMessagesClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Given_OrchestrationInstanceDoesntExist_When_HandleAsync_Then_ThrowsException()
+    {
+        // Act
+        var act = () => Sut.HandleAsync(new OrchestrationInstanceId(Guid.NewGuid()));
+
+        // Assert
+        await Assert.ThrowsAsync<NullReferenceException>(act);
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
 

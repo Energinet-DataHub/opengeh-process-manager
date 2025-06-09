@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>Energinet.DataHub.ProcessManager.Core.Tests</AssemblyName>
@@ -29,7 +29,7 @@
     </PackageReference>
     <PackageReference Include="Energinet.DataHub.Core.FunctionApp.TestCommon" Version="8.3.0" />
     <PackageReference Include="Energinet.DataHub.Core.DurableFunctionApp.TestCommon" Version="8.3.0" />
-    <PackageReference Include="FluentAssertions" Version="7.0.0" />
+    <PackageReference Include="FluentAssertions" Version="8.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
     <PackageReference Include="SimplerSoftware.EntityFrameworkCore.SqlServer.NodaTime" Version="9.1.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />

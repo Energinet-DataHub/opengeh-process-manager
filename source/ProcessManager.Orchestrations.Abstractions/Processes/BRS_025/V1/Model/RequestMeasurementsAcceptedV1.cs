@@ -26,7 +26,6 @@ public record RequestMeasurementsAcceptedV1(
     string ProductNumber,
     ActorNumber ActorNumber,
     ActorRole ActorRole,
-    MeasurementUnit MeasureUnit,
     IReadOnlyCollection<Measurement> Measurements,
     string GridAreaCode)
     : IEnqueueAcceptedDataDto;

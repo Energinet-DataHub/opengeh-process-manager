@@ -212,7 +212,6 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
             ProductNumber: "123",                               // Elmark data?
             ActorNumber: ActorNumber.Create(input.ActorNumber),
             ActorRole: ActorRole.FromName(input.ActorRole),
-            MeasureUnit: MeasurementUnit.Kilowatt,              // Elmark data
             Measurements: measurements,
             GridAreaCode: "804");
     }

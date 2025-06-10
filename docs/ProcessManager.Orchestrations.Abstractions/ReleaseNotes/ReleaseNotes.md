@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.4.0
+
+- Extend `ForwardMeteredDataInputV1` with property `DataSource` which by default is set to `ActorSystem`.
+
 ## Version 2.3.6
 
 - Update `RequestYearlyMeasurementsAcceptedV1` such that it contains a list of `AggregatedMeasurement`.

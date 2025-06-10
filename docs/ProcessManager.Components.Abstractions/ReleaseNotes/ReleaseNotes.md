@@ -1,6 +1,6 @@
 # ProcessManager.Components.Abstractions Release Notes
 
-## Version 2.0.7
+## Version 2.0.9
 
 - Update `BusinessReason` with `YearlyMetering`.
 

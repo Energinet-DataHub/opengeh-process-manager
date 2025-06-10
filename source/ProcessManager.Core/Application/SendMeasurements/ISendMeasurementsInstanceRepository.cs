@@ -40,7 +40,7 @@ public interface ISendMeasurementsInstanceRepository
     Task<SendMeasurementsInstance> GetAsync(SendMeasurementsInstanceId id);
 
     /// <summary>
-    /// Get existing instance by transaction id (used for idempotency key).
+    /// Get existing instance by idempotency key.
     /// </summary>
     Task<SendMeasurementsInstance?> GetOrDefaultAsync(IdempotencyKey idempotencyKey);
 

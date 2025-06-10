@@ -419,7 +419,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // BRS-021 Send Measurements feature flag
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{FeatureFlagNames.SectionName}__{FeatureFlagNames.UseNewSendMeasurementsTable}",
-            false.ToString()); // TODO: Enable once all handlers are updated
+            true.ToString());
 
         // => Edi enqueue topic
         appHostSettings.ProcessEnvironmentVariables.Add(

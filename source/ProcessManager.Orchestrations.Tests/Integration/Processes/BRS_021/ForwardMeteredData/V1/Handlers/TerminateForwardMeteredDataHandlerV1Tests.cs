@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
@@ -24,10 +25,11 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 using Moq;
 using NodaTime;
+using TelemetryConfiguration = Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
@@ -36,6 +38,8 @@ public class TerminateForwardMeteredDataHandlerV1Tests
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
     private readonly Mock<IClock> _clock = new();
+    private readonly Mock<IFeatureManager> _featureManager = new();
+    private readonly Mock<IFileStorageClient> _fileStorageClient = new();
 
     private readonly Instant _now = Instant.FromUtc(2025, 06, 06, 13, 37);
 
@@ -63,11 +67,13 @@ public class TerminateForwardMeteredDataHandlerV1Tests
 
         Sut = new TerminateForwardMeteredDataHandlerV1(
             new OrchestrationInstanceRepository(DbContext),
+            new SendMeasurementsInstanceRepository(DbContext, _fileStorageClient.Object),
             _clock.Object,
             new TelemetryClient(new TelemetryConfiguration
             {
                 TelemetryChannel = Mock.Of<ITelemetryChannel>(),
-            }));
+            }),
+            _featureManager.Object);
     }
 
     public async Task DisposeAsync()
@@ -89,7 +95,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id);
+        await Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
@@ -122,7 +128,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id);
+        await Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
@@ -152,7 +158,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id);
+        await Sut.HandleAsync(orchestrationInstance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
@@ -170,7 +176,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
     public async Task Given_OrchestrationInstanceDoesntExist_When_HandleAsync_Then_ThrowsException()
     {
         // Act
-        var act = () => Sut.HandleAsync(new OrchestrationInstanceId(Guid.NewGuid()));
+        var act = () => Sut.HandleAsync(Guid.NewGuid());
 
         // Assert
         await Assert.ThrowsAsync<NullReferenceException>(act);

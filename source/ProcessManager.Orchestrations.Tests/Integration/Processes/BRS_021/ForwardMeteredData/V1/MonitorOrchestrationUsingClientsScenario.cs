@@ -151,12 +151,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+            .WaitForSendMeasurementsInstanceStepAsync(
                 forwardCommand.IdempotencyKey,
                 OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
         isWaitingForMeasurementsNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
+            .BeTrue("because the instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
@@ -191,18 +191,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             messageId: forwardCommand.ActorMessageId);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
-                idempotencyKey: forwardCommand.IdempotencyKey);
+        var (instanceTerminatedWithSucceeded, terminatedInstance) = await _fixture.ProcessManagerClient
+            .WaitForSendMeasurementsInstanceAsync(
+                idempotencyKey: forwardCommand.IdempotencyKey,
+                mustBeTerminatedWithSuccess: true);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+        instanceTerminatedWithSucceeded.Should().BeTrue(
+            "because the instance should be terminated within given wait time");
 
         // Orchestration instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
-        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
-            .NotBeNull()
-            .And.Be(OrchestrationInstanceTerminationState.Succeeded);
+        terminatedInstance!.TerminatedAt.Should()
+            .NotBeNull();
+        terminatedInstance!.FailedAt.Should()
+            .BeNull();
 
         var meteringPointMasterData = new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId(MeteringPointId),
@@ -219,25 +221,23 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ProductId: "Tariff",
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
-        var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
+        var expectedMasterDataCustomState = new ForwardMeteredDataCustomStateV2(
             HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
             ],
             AdditionalRecipients: []);
 
-        terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
+        terminatedInstance.MasterData.Should()
+            .BeEquivalentTo(JsonSerializer.Serialize(expectedMasterDataCustomState));
 
-        terminatedOrchestrationInstance.Steps.Should()
-            .AllSatisfy(
-                s =>
-                {
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Succeeded);
-                });
+        terminatedInstance.BusinessValidationSucceededAt.Should().NotBeNull();
+        terminatedInstance.SentToMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.SentToEnqueueActorMessagesAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromEnqueueActorMessagesAt.Should().NotBeNull();
+        terminatedInstance.TerminatedAt.Should().NotBeNull();
+        terminatedInstance.FailedAt.Should().BeNull();
     }
 
     [Fact]

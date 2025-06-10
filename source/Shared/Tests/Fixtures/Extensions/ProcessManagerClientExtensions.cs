@@ -15,8 +15,10 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
@@ -189,5 +191,111 @@ public static class ProcessManagerClientExtensions
 
                 return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
             });
+    }
+
+    /// <summary>
+    /// Wait for a Send Measurements instance to be running (or terminated if <paramref name="mustBeTerminatedWithSuccess"/> is true).
+    /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="idempotencyKey">The idempotency key of the Send Measurements instance, used to find the correct instance.</param>
+    /// <param name="mustBeTerminatedWithSuccess">If true then the instance must be terminated.</param>
+    public static async Task<(bool Success, SendMeasurementsInstanceDto? Instance)> WaitForSendMeasurementsInstanceAsync(
+        this IProcessManagerClient client,
+        string idempotencyKey,
+        bool mustBeTerminatedWithSuccess = false)
+    {
+        SendMeasurementsInstanceDto? instance = null;
+        var success = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                instance = await client
+                    .GetSendMeasurementsInstanceByIdempotencyKeyAsync(
+                        new GetSendMeasurementsInstanceByIdempotencyKeyQuery(
+                            new UserIdentityDto(
+                                UserId: Guid.NewGuid(),
+                                ActorNumber: ActorNumber.Create("1234567891234"),
+                                ActorRole: ActorRole.EnergySupplier),
+                            idempotencyKey),
+                        CancellationToken.None);
+
+                if (!mustBeTerminatedWithSuccess)
+                    return instance is not null;
+
+                return instance is
+                {
+                    TerminatedAt: not null,
+                    FailedAt: null,
+                };
+            },
+            timeLimit: TimeSpan.FromSeconds(TimeLimitInSeconds),
+            delay: TimeSpan.FromSeconds(1));
+
+        return (success, instance);
+    }
+
+    /// <summary>
+    /// Wait for a Send Measurements instance step to be running (or successful
+    /// if <paramref name="stepMustBeSuccessful"/> is true).
+    /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="idempotencyKey">The idempotency key of the Send Measurements instance, used to find the correct instance.</param>
+    /// <param name="stepSequence">The sequence number of the step that should be in the <see cref="StepInstanceLifecycleState.Running"/> state.</param>
+    /// <param name="stepMustBeSuccessful">If true then the step must be completed successfully, else the step must be running.</param>
+    public static async Task<(bool Success, SendMeasurementsInstanceDto? Instance)> WaitForSendMeasurementsInstanceStepAsync(
+        this IProcessManagerClient client,
+        string idempotencyKey,
+        int stepSequence,
+        bool stepMustBeSuccessful = false)
+    {
+        SendMeasurementsInstanceDto? instance = null;
+        var success = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                instance = await client
+                    .GetSendMeasurementsInstanceByIdempotencyKeyAsync(
+                        new GetSendMeasurementsInstanceByIdempotencyKeyQuery(
+                            new UserIdentityDto(
+                                UserId: Guid.NewGuid(),
+                                ActorNumber: ActorNumber.Create("1234567891234"),
+                                ActorRole: ActorRole.EnergySupplier),
+                            idempotencyKey),
+                        CancellationToken.None);
+
+                if (instance is null)
+                    return false;
+
+                bool result;
+
+                if (stepMustBeSuccessful)
+                {
+                    result = stepSequence switch
+                    {
+                        OrchestrationDescriptionBuilder.BusinessValidationStep => instance.BusinessValidationSucceededAt is not null,
+                        OrchestrationDescriptionBuilder.FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
+                        OrchestrationDescriptionBuilder.ForwardToMeasurementsStep => instance.ReceivedFromMeasurementsAt is not null,
+                        OrchestrationDescriptionBuilder.EnqueueActorMessagesStep => instance.ReceivedFromEnqueueActorMessagesAt is not null,
+                        _ => throw new ArgumentOutOfRangeException(nameof(stepSequence), $"Unknown step sequence: {stepSequence}."),
+                    };
+                }
+                else
+                {
+                    result = stepSequence switch
+                    {
+                        OrchestrationDescriptionBuilder.BusinessValidationStep => true,
+                        OrchestrationDescriptionBuilder.FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
+                        OrchestrationDescriptionBuilder.ForwardToMeasurementsStep => instance.SentToMeasurementsAt is not null,
+                        OrchestrationDescriptionBuilder.EnqueueActorMessagesStep => instance.SentToEnqueueActorMessagesAt is not null,
+                        _ => throw new ArgumentOutOfRangeException(nameof(stepSequence), $"Unknown step sequence: {stepSequence}."),
+                    };
+                }
+
+                return result;
+            },
+            timeLimit: TimeSpan.FromSeconds(TimeLimitInSeconds),
+            delay: TimeSpan.FromSeconds(1));
+
+        return (success, instance);
     }
 }

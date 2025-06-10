@@ -24,10 +24,12 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Domain.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Registration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
@@ -35,6 +37,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -43,6 +46,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -56,10 +60,12 @@ using TelemetryConfiguration = Microsoft.ApplicationInsights.Extensibility.Telem
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
+[Collection(nameof(ProcessManagerAzuriteCollection))]
 public class StartForwardMeteredDataHandlerV1Tests
     : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ProcessManagerAzuriteFixture _azuriteFixture;
     private readonly ServiceProvider _serviceProvider;
 
     private readonly Mock<ILogger<StartForwardMeteredDataHandlerV1>> _logger = new();
@@ -75,10 +81,14 @@ public class StartForwardMeteredDataHandlerV1Tests
     private readonly MeteringPointId _meteringPointId = new("123456789012345678");
     private readonly ActorMessageId _actorMessageId = new(Guid.NewGuid().ToString());
     private readonly TransactionId _transactionId = new(Guid.NewGuid().ToString());
+    private readonly Instant _now = Instant.FromUtc(2025, 06, 10, 13, 37);
 
-    public StartForwardMeteredDataHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
+    public StartForwardMeteredDataHandlerV1Tests(
+        ProcessManagerDatabaseFixture fixture,
+        ProcessManagerAzuriteFixture azuriteFixture)
     {
         _fixture = fixture;
+        _azuriteFixture = azuriteFixture;
 
         _options.Setup(o => o.Value)
             .Returns(new ProcessManagerOptions
@@ -89,10 +99,22 @@ public class StartForwardMeteredDataHandlerV1Tests
         _featureManager.Setup(fm => fm.IsEnabledAsync(FeatureFlagNames.UseNewSendMeasurementsTable))
             .ReturnsAsync(true);
 
-        _serviceProvider = new ServiceCollection()
+        _clock.Setup(c => c.GetCurrentInstant()).Returns(_now);
+
+        var serviceCollection = new ServiceCollection();
+
+        // Add Business Validation
+        serviceCollection
             .AddNodaTimeForApplication()
-            .AddBusinessValidation([typeof(Program).Assembly])
-            .BuildServiceProvider();
+            .AddBusinessValidation([typeof(Program).Assembly]);
+
+        // Add File Storage
+        serviceCollection.AddTransient<IFileStorageClient, ProcessManagerBlobFileStorageClient>();
+        serviceCollection.AddAzureClients(builder => builder
+            .AddBlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString)
+            .WithName(ProcessManagerBlobFileStorageClient.ClientName));
+
+        _serviceProvider = serviceCollection.BuildServiceProvider();
     }
 
     [NotNull]
@@ -170,6 +192,93 @@ public class StartForwardMeteredDataHandlerV1Tests
     }
 
     [Fact]
+    public async Task Given_ValidInput_When_Handled_Then_InstanceIsSavedCorrectlyToDatabase()
+    {
+        // Arrange
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithMeteringPointId(_meteringPointId.Value)
+            .Build();
+
+        var masterData = new MeteringPointMasterDataBuilder().BuildFromInput(input);
+        _meteringPointMasterDataProvider
+            .Setup(mpmdp => mpmdp.GetMasterData(_meteringPointId.Value, It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync([masterData])
+            .Verifiable(Times.Once);
+
+        var idempotencyKey = IdempotencyKey.CreateNew();
+
+        // Act
+        await Sut.HandleAsync(CreateStartOrchestrationInstanceFromInput(input), idempotencyKey);
+
+        // Assert
+        await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
+
+        var sendMeasurementsInstance = await assertionDbContext.SendMeasurementsInstances
+            .SingleOrDefaultAsync(smi => smi.IdempotencyKey == idempotencyKey.ToHash());
+
+        Assert.NotNull(sendMeasurementsInstance);
+
+        var expectedMasterData = new ForwardMeteredDataCustomStateV2(
+            HistoricalMeteringPointMasterData: [ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(masterData)],
+            AdditionalRecipients: []);
+
+        // Is saved as /{ActorNumber}/{Year}/{Month}/{Day}/{Id without "-"}
+        var expectedFileStorageReference =
+            $"{input.ActorNumber}/{_now.ToDateTimeUtc().Year:0000}/{_now.ToDateTimeUtc().Month:00}/{_now.ToDateTimeUtc().Day:00}/{sendMeasurementsInstance.Id.Value:N}";
+
+        Assert.Multiple(
+            () => Assert.Equal(_transactionId, sendMeasurementsInstance.TransactionId),
+            () => Assert.Equal(_meteringPointId, sendMeasurementsInstance.MeteringPointId),
+            () => Assert.Equal(_actor.Number, sendMeasurementsInstance.CreatedByActorNumber),
+            () => Assert.Equal(_actor.Role, sendMeasurementsInstance.CreatedByActorRole),
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, sendMeasurementsInstance.Lifecycle.State),
+            () => Assert.Null(sendMeasurementsInstance.ErrorText),
+            () => Assert.Null(sendMeasurementsInstance.FailedAt),
+            () => Assert.Equal(_now, sendMeasurementsInstance.CreatedAt),
+            () => Assert.Equivalent(expectedMasterData, sendMeasurementsInstance.MasterData.AsType<ForwardMeteredDataCustomStateV2>()),
+            () => Assert.Null(sendMeasurementsInstance.TerminatedAt),
+            () => Assert.Equal(expectedFileStorageReference, sendMeasurementsInstance.FileStorageReference.Path),
+            () => Assert.Equal(SendMeasurementsInputFileStorageReference.ContainerName, sendMeasurementsInstance.FileStorageReference.Category),
+            () => Assert.Equal(_now, sendMeasurementsInstance.BusinessValidationSucceededAt),
+            () => Assert.Null(sendMeasurementsInstance.ReceivedFromMeasurementsAt),
+            () => Assert.Equal(_now, sendMeasurementsInstance.SentToMeasurementsAt),
+            () => Assert.Null(sendMeasurementsInstance.ReceivedFromEnqueueActorMessagesAt),
+            () => Assert.Null(sendMeasurementsInstance.SentToEnqueueActorMessagesAt),
+            () => Assert.Empty(sendMeasurementsInstance.ValidationErrors.SerializedValue));
+    }
+
+    [Fact]
+    public async Task Given_ValidInput_When_Handled_Then_InputIsSavedCorrectlyToFileStorage()
+    {
+        // Arrange
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithMeteringPointId(_meteringPointId.Value)
+            .Build();
+
+        _meteringPointMasterDataProvider
+            .Setup(mpmdp => mpmdp.GetMasterData(_meteringPointId.Value, It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync([new MeteringPointMasterDataBuilder().BuildFromInput(input)])
+            .Verifiable(Times.Once);
+
+        var idempotencyKey = IdempotencyKey.CreateNew();
+
+        // Act
+        await Sut.HandleAsync(CreateStartOrchestrationInstanceFromInput(input), idempotencyKey);
+
+        // Assert
+        await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
+
+        var sendMeasurementsInstance = await assertionDbContext.SendMeasurementsInstances
+            .SingleOrDefaultAsync(smi => smi.IdempotencyKey == idempotencyKey.ToHash());
+
+        Assert.NotNull(sendMeasurementsInstance);
+
+        var inputFromFileStorage = await DownloadInputFromFileStorageAsync(sendMeasurementsInstance.FileStorageReference);
+
+        Assert.Equivalent(input, inputFromFileStorage);
+    }
+
+    [Fact]
     public async Task Given_InvalidInput_When_Handled_Then_BusinessValidationFailed_AndThen_RejectActorMessageIsEnqueued()
     {
         // Arrange
@@ -202,7 +311,7 @@ public class StartForwardMeteredDataHandlerV1Tests
             // Validation errors should be saved to the validation errors property
             () => Assert.NotEmpty(sendMeasurementsInstance.ValidationErrors.SerializedValue),
             () => Assert.False(sendMeasurementsInstance.IsSentToMeasurements, "Should not be sent to measurements when validation fails"),
-            () => Assert.True(sendMeasurementsInstance.IsSentToEnqueueActorMessagesAt, "Rejected actor message should be enqueued"));
+            () => Assert.True(sendMeasurementsInstance.IsSentToEnqueueActorMessages, "Rejected actor message should be enqueued"));
 
         // Enqueue actor messages client should be called once to enqueue the rejected message
         _enqueueActorMessagesClient.Verify(
@@ -383,7 +492,7 @@ public class StartForwardMeteredDataHandlerV1Tests
                 _featureManager.Object,
                 _options.Object,
                 Mock.Of<ILogger<OrchestrationInstanceManager>>()),
-            new SendMeasurementsInstanceRepository(DbContext, Mock.Of<IFileStorageClient>()),
+            new SendMeasurementsInstanceRepository(DbContext, _serviceProvider.GetRequiredService<IFileStorageClient>()),
             orchestrationInstanceRepository,
             _clock.Object,
             _measurementsClient.Object,
@@ -397,5 +506,13 @@ public class StartForwardMeteredDataHandlerV1Tests
             {
                 TelemetryChannel = Mock.Of<ITelemetryChannel>(),
             }));
+    }
+
+    private async Task<ForwardMeteredDataInputV1> DownloadInputFromFileStorageAsync(IFileStorageReference fileStorageReference)
+    {
+        var fileStorageClient = _serviceProvider.GetRequiredService<IFileStorageClient>();
+        var stream = await fileStorageClient.DownloadAsync(fileStorageReference, CancellationToken.None);
+        var input = await stream.DeserializeForwardMeteredDataInputV1Async(fileStorageReference);
+        return input;
     }
 }

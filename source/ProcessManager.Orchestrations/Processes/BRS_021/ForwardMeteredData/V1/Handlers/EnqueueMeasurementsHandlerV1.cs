@@ -12,34 +12,103 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
+using Microsoft.FeatureManagement;
 using NodaTime;
+using OrchestrationInstanceLifecycleState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.OrchestrationInstanceLifecycleState;
+using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.StepInstanceLifecycleState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
 public class EnqueueMeasurementsHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
+    ISendMeasurementsInstanceRepository sendMeasurementsInstanceRepository,
     IClock clock,
     IEnqueueActorMessagesClient enqueueActorMessagesClient,
     MeteringPointReceiversProvider meteringPointReceiversProvider,
-    TelemetryClient telemetryClient)
+    TelemetryClient telemetryClient,
+    IFeatureManager featureManager)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly ISendMeasurementsInstanceRepository _sendMeasurementsInstanceRepository = sendMeasurementsInstanceRepository;
     private readonly IClock _clock = clock;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
     private readonly MeteringPointReceiversProvider _meteringPointReceiversProvider = meteringPointReceiversProvider;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
+    private readonly IFeatureManager _featureManager = featureManager;
 
-    public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
+    public async Task HandleAsync(Guid instanceId)
+    {
+        var useNewSendMeasurementsTable = await _featureManager.UseNewSendMeasurementsTable().ConfigureAwait(false);
+
+        if (useNewSendMeasurementsTable)
+        {
+            await HandleSendMeasurementsInstanceAsync(SendMeasurementsInstanceId.FromExisting(instanceId))
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            await HandleOrchestrationInstanceAsync(new OrchestrationInstanceId(instanceId))
+                .ConfigureAwait(false);
+        }
+    }
+
+    public async Task HandleSendMeasurementsInstanceAsync(SendMeasurementsInstanceId sendMeasurementsInstanceId)
+    {
+        var instance = await _sendMeasurementsInstanceRepository
+            .GetAsync(sendMeasurementsInstanceId)
+            .ConfigureAwait(false);
+
+        // If the instance is terminated, do nothing (idempotency/retry check).
+        if (instance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)
+            return;
+
+        // If the instance is already sent to enqueue actor messages, do nothing (idempotency/retry check).
+        if (instance.IsSentToEnqueueActorMessages)
+            return;
+
+        // Instance can already be marked as received from measurements, so we check that first (idempotency/retry check).
+        if (!instance.IsReceivedFromMeasurements)
+        {
+            instance.MarkAsReceivedFromMeasurements(_clock.GetCurrentInstant());
+            await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        }
+
+        var inputStream = await _sendMeasurementsInstanceRepository.DownloadInputAsync(instance.FileStorageReference).ConfigureAwait(false);
+        var input = await inputStream.DeserializeForwardMeteredDataInputV1Async(instance.FileStorageReference).ConfigureAwait(false);
+
+        // Only valid data will be enqueued
+        var forwardMeteredDataInput = ForwardMeteredDataValidInput.From(input);
+
+        var masterDataCustomState = instance.MasterData.AsType<ForwardMeteredDataCustomStateV2>();
+
+        // Start Step: Find receiver step
+        var receiversWithMeteredData = FindReceivers(masterDataCustomState, forwardMeteredDataInput);
+
+        // Start Step: Enqueue actor messages step
+        await EnqueueAcceptedActorMessagesAsync(
+                instance,
+                forwardMeteredDataInput,
+                masterDataCustomState,
+                receiversWithMeteredData)
+            .ConfigureAwait(false);
+    }
+
+    private async Task HandleOrchestrationInstanceAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(orchestrationInstanceId)
@@ -117,6 +186,17 @@ public class EnqueueMeasurementsHandlerV1(
         return receiversWithMeteredData;
     }
 
+    private IReadOnlyCollection<ReceiversWithMeteredDataV1> FindReceivers(
+        ForwardMeteredDataCustomStateV2 customState,
+        ForwardMeteredDataValidInput forwardMeteredDataValidInput)
+    {
+        var receiversWithMeteredData = CalculateReceiversWithMeasurements(
+            customState,
+            forwardMeteredDataValidInput);
+
+        return receiversWithMeteredData;
+    }
+
     /// <summary>
     /// Calculate receivers with measurements based on the metering point master data and the forward metered data input.
     /// <remarks>
@@ -167,7 +247,7 @@ public class EnqueueMeasurementsHandlerV1(
 
     private async Task EnqueueAcceptedActorMessagesAsync(
         OrchestrationInstance orchestrationInstance,
-        ForwardMeteredDataValidInput forwardMeteredDataInput,
+        ForwardMeteredDataValidInput input,
         IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
@@ -202,22 +282,61 @@ public class EnqueueMeasurementsHandlerV1(
 
         // Enqueue forward metered data actor messages
         var data = new ForwardMeteredDataAcceptedV1(
-            OriginalActorMessageId: forwardMeteredDataInput.ActorMessageId.Value,
-            MeteringPointId: forwardMeteredDataInput.MeteringPointId.Value,
-            MeteringPointType: forwardMeteredDataInput.MeteringPointType,
-            ProductNumber: forwardMeteredDataInput.ProductNumber,
-            RegistrationDateTime: forwardMeteredDataInput.RegistrationDateTime.ToDateTimeOffset(),
-            StartDateTime: forwardMeteredDataInput.StartDateTime.ToDateTimeOffset(),
-            EndDateTime: forwardMeteredDataInput.EndDateTime.ToDateTimeOffset(),
+            OriginalActorMessageId: input.ActorMessageId.Value,
+            MeteringPointId: input.MeteringPointId.Value,
+            MeteringPointType: input.MeteringPointType,
+            ProductNumber: input.ProductNumber,
+            RegistrationDateTime: input.RegistrationDateTime.ToDateTimeOffset(),
+            StartDateTime: input.StartDateTime.ToDateTimeOffset(),
+            EndDateTime: input.EndDateTime.ToDateTimeOffset(),
             ReceiversWithMeteredData: receivers,
             GridAreaCode: gridAreaCode.Value);
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                orchestration: OrchestrationDescriptionBuilder.UniqueName,
+                orchestration: Brs_021_ForwardedMeteredData.V1,
                 orchestrationInstanceId: orchestrationInstance.Id.Value,
                 orchestrationStartedBy: orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
                 idempotencyKey: idempotencyKey,
                 data: data)
             .ConfigureAwait(false);
+    }
+
+    private async Task EnqueueAcceptedActorMessagesAsync(
+        SendMeasurementsInstance instance,
+        ForwardMeteredDataValidInput input,
+        ForwardMeteredDataCustomStateV2 customState,
+        IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
+    {
+        // Ensure always using the same idempotency key. Messages will only be enqueued once per instance,
+        // so we can use the instance id as the idempotency key.
+        var idempotencyKey = instance.Id.Value;
+
+        var gridAreaCode = customState.HistoricalMeteringPointMasterData.FirstOrDefault()?.GridAreaCode
+                           ?? throw new InvalidOperationException($"Grid area code is required to enqueue accepted message with id {instance.Id}");
+
+        // Enqueue forward metered data actor messages
+        var data = new ForwardMeteredDataAcceptedV1(
+            OriginalActorMessageId: input.ActorMessageId.Value,
+            MeteringPointId: input.MeteringPointId.Value,
+            MeteringPointType: input.MeteringPointType,
+            ProductNumber: input.ProductNumber,
+            RegistrationDateTime: input.RegistrationDateTime.ToDateTimeOffset(),
+            StartDateTime: input.StartDateTime.ToDateTimeOffset(),
+            EndDateTime: input.EndDateTime.ToDateTimeOffset(),
+            ReceiversWithMeteredData: receivers,
+            GridAreaCode: gridAreaCode.Value);
+
+        await _enqueueActorMessagesClient.EnqueueAsync(
+                orchestration: Brs_021_ForwardedMeteredData.V1,
+                orchestrationInstanceId: instance.Id.Value,
+                orchestrationStartedBy: new ActorIdentityDto(
+                    instance.CreatedByActorNumber,
+                    instance.CreatedByActorRole),
+                idempotencyKey: idempotencyKey,
+                data: data)
+            .ConfigureAwait(false);
+
+        instance.MarkAsSentToEnqueueActorMessages(_clock.GetCurrentInstant());
+        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 }

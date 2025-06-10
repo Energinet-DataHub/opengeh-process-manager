@@ -103,11 +103,15 @@ public class SendMeasurementsInstance
 
     public Instant? ReceivedFromMeasurementsAt { get; private set; }
 
+    public bool IsReceivedFromMeasurements => ReceivedFromMeasurementsAt is not null;
+
     public Instant? SentToEnqueueActorMessagesAt { get; private set; }
 
-    public bool IsSentToEnqueueActorMessagesAt => SentToEnqueueActorMessagesAt is not null;
+    public bool IsSentToEnqueueActorMessages => SentToEnqueueActorMessagesAt is not null;
 
     public Instant? ReceivedFromEnqueueActorMessagesAt { get; private set; }
+
+    public bool IsReceivedFromEnqueueActorMessages => ReceivedFromEnqueueActorMessagesAt is not null;
 
     public Instant? TerminatedAt { get; private set; }
 
@@ -153,12 +157,34 @@ public class SendMeasurementsInstance
         SentToMeasurementsAt = sentToMeasurementsAt;
     }
 
+    public void MarkAsReceivedFromMeasurements(Instant receivedFromMeasurementsAt)
+    {
+        if (ReceivedFromMeasurementsAt is not null)
+            throw new InvalidOperationException($"Cannot mark instance as received from Measurements (Id={Id.Value}, ReceivedFromMeasurementsAt={InstantPattern.General.Format(ReceivedFromMeasurementsAt.Value)}).");
+
+        if (!IsSentToMeasurements)
+            throw new InvalidOperationException($"Cannot mark instance as received from Measurements if it is not sent yet (Id={Id.Value}).");
+
+        ReceivedFromMeasurementsAt = receivedFromMeasurementsAt;
+    }
+
     public void MarkAsSentToEnqueueActorMessages(Instant sentToEnqueueActorMessagesAt)
     {
         if (SentToEnqueueActorMessagesAt is not null)
             throw new InvalidOperationException($"Cannot mark instance as sent to a enqueue actor messages (Id={Id.Value}, SentToEnqueueActorMessagesAt={InstantPattern.General.Format(SentToEnqueueActorMessagesAt.Value)}).");
 
         SentToEnqueueActorMessagesAt = sentToEnqueueActorMessagesAt;
+    }
+
+    public void MarkAsReceivedFromEnqueueActorMessages(Instant receivedFromEnqueueActorMessagesAt)
+    {
+        if (ReceivedFromEnqueueActorMessagesAt is not null)
+            throw new InvalidOperationException($"Cannot mark instance as received from Enqueue Actor Messages (Id={Id.Value}, ReceivedFromEnqueueActorMessagesAt={InstantPattern.General.Format(ReceivedFromEnqueueActorMessagesAt.Value)}).");
+
+        if (!IsSentToEnqueueActorMessages)
+            throw new InvalidOperationException($"Cannot mark instance as received from Enqueue Actor Messages if it is not sent yet (Id={Id.Value}).");
+
+        ReceivedFromEnqueueActorMessagesAt = receivedFromEnqueueActorMessagesAt;
     }
 
     public void MarkAsTerminated(Instant terminatedAt)

@@ -49,8 +49,8 @@ public class TerminateTrigger_Brs_021_ForwardMeteredData_V1(
         {
             var notify = GetNotifyOrchestrationInstanceV1(message);
 
-            var orchestrationInstanceId = new Core.Domain.OrchestrationInstance.OrchestrationInstanceId(Guid.Parse(notify.OrchestrationInstanceId));
-            await _terminateForwardMeteredDataHandlerV1.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+            var instanceId = Guid.Parse(notify.OrchestrationInstanceId);
+            await _terminateForwardMeteredDataHandlerV1.HandleAsync(instanceId).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

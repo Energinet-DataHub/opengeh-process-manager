@@ -480,7 +480,7 @@ public class StartForwardMeteredDataHandlerV1(
         SendMeasurementsInstance instance,
         ForwardMeteredDataInputV1 input)
     {
-        // If validation has already been performed,we return the existing validation errors (if any).
+        // If validation has already been performed, we return the existing validation errors (if any).
         if (instance.IsBusinessValidationPerformed)
         {
             return instance.ValidationErrors.IsEmpty

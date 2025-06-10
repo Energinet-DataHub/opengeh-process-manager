@@ -522,7 +522,8 @@ public class StartForwardMeteredDataHandlerV1(
                         .ToList()))
             .ConfigureAwait(false);
 
-        if (input.DataSource == ForwardMeteredDataInputV1.DataSourceEnum.MigrationSubsystem)
+        if (input.DataSource == ForwardMeteredDataInputV1.DataSourceEnum.MigrationSubsystem
+            && validationErrors.Any())
         {
             // Clear validation errors, and behave as if business validation was a success
             validationErrors = [];

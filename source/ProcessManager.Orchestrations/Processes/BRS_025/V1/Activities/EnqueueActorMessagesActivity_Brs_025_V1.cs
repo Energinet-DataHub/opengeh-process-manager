@@ -18,6 +18,7 @@ using Energinet.DataHub.Measurements.Client;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Extensions;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
@@ -25,7 +26,6 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Orche
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 using NodaTime;
-using Aggregation = Energinet.DataHub.Measurements.Abstractions.Api.Models.Aggregation;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
 
@@ -60,74 +60,40 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
             message).ConfigureAwait(false);
     }
 
-    private async Task<RequestMeasurementsAcceptedV1> GetMessagesAsync(RequestMeasurementsInputV1 orchestrationInstanceInput)
+    // TODO: Move mappers + tests
+    private static TimeSpan GetResolutionDuration(Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution resolution)
     {
-        // TODO: Correct this, when we get the periods from elmark.
-        // See https://app.zenhub.com/workspaces/mosaic-60a6105157304f00119be86e/issues/gh/energinet-datahub/team-mosaic/801
-        var now = _clock.GetCurrentInstant();
-        var measurementsQuery = new GetAggregateByPeriodQuery(
-            MeteringPointIds: new List<string>() { orchestrationInstanceInput.MeteringPointId },
-            To: now,
-            From: now.Minus(Duration.FromDays(365)),
-            Aggregation: Aggregation.Year);
-
-        var measurements = (await _measurementsClient.GetAggregatedByPeriodAsync(measurementsQuery)
-            .ConfigureAwait(false))
-            .ToList();
-
-        if (measurements.Count != 1)
+        switch (resolution)
         {
-            throw new InvalidOperationException(
-                $"Expected exactly one measurement for metering point {orchestrationInstanceInput.MeteringPointId}, but found {measurements.Count}.");
+            case Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.QuarterHourly:
+                return TimeSpan.FromMinutes(15);
+            case Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Hourly:
+                return TimeSpan.FromHours(1);
+            case Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Daily:
+                return TimeSpan.FromDays(1);
+            case Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Monthly:
+                throw new InvalidOperationException("Monthly resolution to duration is not supported, since a month is not a fixed duration.");
+            default:
+                throw new ArgumentOutOfRangeException(nameof(resolution), resolution, "Unknown resolution.");
         }
-
-        var measurement = measurements.Single();
-
-        // The keys are a combination of metering point id, date and resolution.
-        // I have no idea how we can utilize this. Hence I will ignore the values of the keys.
-        var keys = measurement.PointAggregationGroups.Keys.ToList();
-
-        var aggregatedMeasurements = keys.Select(
-            key =>
-                CreateAggregatedMeasurement(measurement.PointAggregationGroups[key])).ToList();
-
-        return GenerateMessage(
-            orchestrationInstanceInput,
-            aggregatedMeasurements);
     }
 
-    private RequestMeasurementsAcceptedV1 GenerateMessage(
-        RequestMeasurementsInputV1 input,
-        IReadOnlyCollection<AggregatedMeasurement> aggregatedMeasurements)
+    private static MeasurementUnit MapMeasureUnit(Unit unit)
     {
-        return new RequestMeasurementsAcceptedV1(
-            OriginalActorMessageId: input.ActorMessageId,
-            OriginalTransactionId: input.TransactionId,
-            MeteringPointId: input.MeteringPointId,
-            MeteringPointType: MeteringPointType.Consumption,   // Elmark data
-            ProductNumber: "123",                               // Elmark data?
-            ActorNumber: ActorNumber.Create(input.ActorNumber),
-            ActorRole: ActorRole.FromName(input.ActorRole),
-            MeasureUnit: MeasurementUnit.Kilowatt,              // Elmark data
-            AggregatedMeasurements: aggregatedMeasurements,
-            GridAreaCode: "804");
+        return unit switch
+        {
+            Unit.kW => MeasurementUnit.Kilowatt,
+            Unit.kWh => MeasurementUnit.KilowattHour,
+            Unit.kVArh => MeasurementUnit.KiloVoltAmpereReactiveHour,
+            Unit.MW => MeasurementUnit.Megawatt,
+            Unit.MWh => MeasurementUnit.MegawattHour,
+            Unit.MVAr => MeasurementUnit.MegaVoltAmpereReactivePower,
+            Unit.Tonne => MeasurementUnit.MetricTon,
+            _ => throw new ArgumentOutOfRangeException(nameof(unit), $"Unknown unit: {unit}"),
+        };
     }
 
-    private AggregatedMeasurement CreateAggregatedMeasurement(PointAggregationGroup grouping)
-    {
-        // Single() is valid due to the data structure of the PointAggregationGroup.
-        // If the year changes, then we will have a new PointAggregationGroup.
-        // Since the yaar is part of the key in the PointAggregationGroups dictionary,
-        var point = grouping.PointAggregations.Single();
-        return new AggregatedMeasurement(
-            StartDateTime: grouping.From.ToDateTimeOffset(),
-            EndDateTime: grouping.To.ToDateTimeOffset(),
-            Resolution: MapResolution(grouping.Resolution),
-            EnergyQuantity: point.Quantity,
-            QuantityQuality: MapQuality(point.Quality));
-    }
-
-    private Quality MapQuality(Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality quality)
+    private static Quality MapQuality(Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality quality)
     {
         return quality switch
         {
@@ -139,7 +105,7 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
         };
     }
 
-    private Resolution MapResolution(Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution quality)
+    private static Resolution MapResolution(Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution quality)
     {
         return quality switch
         {
@@ -150,6 +116,105 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Yearly => Resolution.Yearly,
             _ => throw new ArgumentOutOfRangeException(nameof(quality), $"Unknown quality: {quality}"),
         };
+    }
+
+    // TODO: create tests for this method
+    private async Task<RequestMeasurementsAcceptedV1> GetMessagesAsync(RequestMeasurementsInputV1 orchestrationInstanceInput)
+    {
+        var measurementPointDtos =
+            await GetMeasurementPointsFromMeasurements(orchestrationInstanceInput).ConfigureAwait(false);
+
+        var measurements = CreateMeasurements(measurementPointDtos);
+
+        return GenerateMessage(
+            orchestrationInstanceInput,
+            measurements);
+    }
+
+    private IReadOnlyCollection<Measurement> CreateMeasurements(IReadOnlyCollection<MeasurementPointDto> measurementPointDtos)
+    {
+        var measurements = new List<Measurement>();
+        var currentMeasurementPoints = new List<MeasurementPoint>();
+        MeasurementPointDto? previousPoint = null;
+        DateTimeOffset? currentMeasurementStartedAt = null;
+
+        foreach (var measurementPointDto in measurementPointDtos.OrderBy(x => x.RegistrationTime))
+        {
+            if (previousPoint != null)
+            {
+                var expectedTime = previousPoint.RegistrationTime + GetResolutionDuration(previousPoint.Resolution);
+                if (measurementPointDto.RegistrationTime != expectedTime)
+                {
+                    // Create a new Measurement with the current group of points
+                    measurements.Add(new Measurement(
+                        Resolution: MapResolution(previousPoint.Resolution),
+                        MeasureUnit: MapMeasureUnit(previousPoint.Unit),
+                        StartDateTime: currentMeasurementStartedAt!.Value,
+                        EndDateTime: measurementPointDto.RegistrationTime, // The end time is the start time of the next point
+                        MeasurementPoints: currentMeasurementPoints));
+
+                    // Start a new group of points
+                    currentMeasurementPoints = new List<MeasurementPoint>();
+                    currentMeasurementStartedAt = measurementPointDto.RegistrationTime;
+                }
+            }
+
+            // Add the current point to the current group of points
+            currentMeasurementPoints.Add(new MeasurementPoint(
+                Position: measurementPointDto.Order,
+                EnergyQuantity: measurementPointDto.Quantity,
+                QuantityQuality: MapQuality(measurementPointDto.Quality)));
+
+            currentMeasurementStartedAt ??= measurementPointDto.RegistrationTime;
+
+            previousPoint = measurementPointDto;
+        }
+
+        // Add the last group as a Measurement
+        if (currentMeasurementPoints.Any())
+        {
+            measurements.Add(new Measurement(
+                Resolution: MapResolution(previousPoint!.Resolution),
+                MeasureUnit: MapMeasureUnit(previousPoint.Unit),
+                StartDateTime: currentMeasurementStartedAt!.Value,
+                EndDateTime: previousPoint.RegistrationTime + GetResolutionDuration(previousPoint.Resolution),
+                MeasurementPoints: currentMeasurementPoints));
+        }
+
+        return measurements;
+    }
+
+    private async Task<IReadOnlyCollection<MeasurementPointDto>> GetMeasurementPointsFromMeasurements(
+        RequestMeasurementsInputV1 orchestrationInstanceInput)
+    {
+        var to = InstantPatternWithOptionalSeconds.Parse(orchestrationInstanceInput.EndDateTime!).Value;
+        var from = InstantPatternWithOptionalSeconds.Parse(orchestrationInstanceInput.StartDateTime!).Value;
+        var measurementsQuery = new GetByPeriodQuery(
+            MeteringPointId: orchestrationInstanceInput.MeteringPointId,
+            To: to,
+            From: from);
+
+        var measurementPointsFromMeasurements = await _measurementsClient
+            .GetCurrentByPeriodAsync(measurementsQuery).ConfigureAwait(false);
+        return measurementPointsFromMeasurements.AsReadOnly();
+    }
+
+    private RequestMeasurementsAcceptedV1 GenerateMessage(
+        RequestMeasurementsInputV1 input,
+        IReadOnlyCollection<Measurement> measurements)
+    {
+        // TODO: GetMasterdata and update product number and grid area code
+        return new RequestMeasurementsAcceptedV1(
+            OriginalActorMessageId: input.ActorMessageId,
+            OriginalTransactionId: input.TransactionId,
+            MeteringPointId: input.MeteringPointId,
+            MeteringPointType: MeteringPointType.Consumption,   // Elmark data
+            ProductNumber: "123",                               // Elmark data?
+            ActorNumber: ActorNumber.Create(input.ActorNumber),
+            ActorRole: ActorRole.FromName(input.ActorRole),
+            MeasureUnit: MeasurementUnit.Kilowatt,              // Elmark data
+            Measurements: measurements,
+            GridAreaCode: "804");
     }
 
     private Task EnqueueActorMessagesAsync(

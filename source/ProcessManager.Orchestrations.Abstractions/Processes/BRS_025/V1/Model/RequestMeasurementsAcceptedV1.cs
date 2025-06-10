@@ -27,13 +27,18 @@ public record RequestMeasurementsAcceptedV1(
     ActorNumber ActorNumber,
     ActorRole ActorRole,
     MeasurementUnit MeasureUnit,
-    IReadOnlyCollection<AggregatedMeasurement> AggregatedMeasurements,
+    IReadOnlyCollection<Measurement> Measurements,
     string GridAreaCode)
     : IEnqueueAcceptedDataDto;
 
-public record AggregatedMeasurement(
+public record Measurement(
+    Resolution Resolution,
+    MeasurementUnit MeasureUnit,
     DateTimeOffset StartDateTime,
     DateTimeOffset EndDateTime,
-    Resolution Resolution,
+    IReadOnlyCollection<MeasurementPoint> MeasurementPoints);
+
+public record MeasurementPoint(
+    int Position,
     decimal? EnergyQuantity,
-    Quality QuantityQuality);
+    Quality? QuantityQuality);

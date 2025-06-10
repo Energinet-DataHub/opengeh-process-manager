@@ -13,22 +13,62 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
+using Energinet.DataHub.ProcessManager.Core.Application.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
+using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Microsoft.ApplicationInsights;
+using Microsoft.FeatureManagement;
 using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
 public class TerminateForwardMeteredDataHandlerV1(
     IOrchestrationInstanceProgressRepository progressRepository,
+    ISendMeasurementsInstanceRepository sendMeasurementsInstanceRepository,
     IClock clock,
-    TelemetryClient telemetryClient)
+    TelemetryClient telemetryClient,
+    IFeatureManager featureManager)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
+    private readonly ISendMeasurementsInstanceRepository _sendMeasurementsInstanceRepository = sendMeasurementsInstanceRepository;
     private readonly IClock _clock = clock;
     private readonly TelemetryClient _telemetryClient = telemetryClient;
+    private readonly IFeatureManager _featureManager = featureManager;
 
-    public async Task HandleAsync(OrchestrationInstanceId orchestrationInstanceId)
+    public async Task HandleAsync(Guid instanceId)
+    {
+        var useNewSendMeasurementsTable = await _featureManager.UseNewSendMeasurementsTable().ConfigureAwait(false);
+
+        if (useNewSendMeasurementsTable)
+        {
+            await HandleSendMeasurementsInstanceAsync(SendMeasurementsInstanceId.FromExisting(instanceId)).ConfigureAwait(false);
+        }
+        else
+        {
+            await HandleOrchestrationInstanceAsync(new OrchestrationInstanceId(instanceId)).ConfigureAwait(false);
+        }
+    }
+
+    private async Task HandleSendMeasurementsInstanceAsync(SendMeasurementsInstanceId instanceId)
+    {
+        var instance = await _sendMeasurementsInstanceRepository
+            .GetAsync(instanceId)
+            .ConfigureAwait(false);
+
+        // If the orchestration instance is terminated, do nothing (idempotency/retry check).
+        if (instance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)
+            return;
+
+        // Instance can already be marked as received from Enqueue Actor Messages, so we must check that (idempotency/retry check).
+        if (!instance.IsReceivedFromEnqueueActorMessages)
+            instance.MarkAsReceivedFromEnqueueActorMessages(_clock.GetCurrentInstant());
+
+        instance.MarkAsTerminated(_clock.GetCurrentInstant());
+        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+    }
+
+    private async Task HandleOrchestrationInstanceAsync(OrchestrationInstanceId orchestrationInstanceId)
     {
         var orchestrationInstance = await _progressRepository
             .GetAsync(orchestrationInstanceId)
@@ -42,12 +82,12 @@ public class TerminateForwardMeteredDataHandlerV1(
         if (orchestrationInstance.Lifecycle.State is not OrchestrationInstanceLifecycleState.Running)
             throw new InvalidOperationException($"Orchestration instance must be running (Id={orchestrationInstance.Id}, State={orchestrationInstance.Lifecycle.State}).");
 
-        await TerminateEnqueueActorMessagesStep(orchestrationInstance).ConfigureAwait(false);
+        await TerminateEnqueueActorMessagesStepAsync(orchestrationInstance).ConfigureAwait(false);
 
-        await TerminateOrchestrationInstance(orchestrationInstance).ConfigureAwait(false);
+        await TerminateOrchestrationInstanceAsync(orchestrationInstance).ConfigureAwait(false);
     }
 
-    private async Task TerminateEnqueueActorMessagesStep(OrchestrationInstance orchestrationInstance)
+    private async Task TerminateEnqueueActorMessagesStepAsync(OrchestrationInstance orchestrationInstance)
     {
         var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
@@ -64,7 +104,7 @@ public class TerminateForwardMeteredDataHandlerV1(
         await StepHelper.TerminateStepAndCommit(enqueueStep, _clock, _progressRepository, _telemetryClient).ConfigureAwait(false);
     }
 
-    private async Task TerminateOrchestrationInstance(OrchestrationInstance orchestrationInstance)
+    private async Task TerminateOrchestrationInstanceAsync(OrchestrationInstance orchestrationInstance)
     {
         var businessValidationStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.BusinessValidationStep);
 

@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
+using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Extensions;
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
@@ -119,7 +120,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_RunningInstance_When_HandleAsync_Then_ActorMessagesAreEnqueued()
     {
         // Arrange
-        var (instance, inputStream) = CreateRunningSendMeasurementsInstance();
+        var (instance, inputStream, input) = CreateRunningSendMeasurementsInstance();
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -155,7 +156,7 @@ public class EnqueueMeasurementsHandlerV1Tests
                 It.Is<ForwardMeteredDataAcceptedV1>(m =>
                     m.MeteringPointId == _meteringPointId.Value &&
                     m.OriginalActorMessageId == _actorMessageId &&
-                    HasCorrectReceivers(m))),
+                    HasCorrectReceiversWithMeteredData(m, input))),
             Times.Once);
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
@@ -164,7 +165,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_RunningInstance_AndGiven_AlreadyHasEnqueueIdempotencyKey_When_HandleAsync_Then_ActorMessagesAreEnqueuedWithSameIdempotencyKey()
     {
         // Arrange
-        var (instance, inputStream) = CreateRunningSendMeasurementsInstance();
+        var (instance, inputStream, input) = CreateRunningSendMeasurementsInstance();
 
         // Send Measurements Instance uses it's instance id as the idempotency key, so it should always be the same
         // idempotency key for the same instance.
@@ -198,7 +199,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_InstanceStuckAtEnqueueActorMessages_When_HandleAsync_Then_ActorMessagesAreEnqueued()
     {
         // Arrange
-        var (instance, inputStream) = CreateRunningSendMeasurementsInstance();
+        var (instance, inputStream, input) = CreateRunningSendMeasurementsInstance();
 
         // Simulate that the instance has terminated the ForwardToMeasurementsStep and
         // is stuck at the EnqueueActorMessages step
@@ -234,7 +235,7 @@ public class EnqueueMeasurementsHandlerV1Tests
                 It.Is<ForwardMeteredDataAcceptedV1>(m =>
                     m.MeteringPointId == _meteringPointId.Value &&
                     m.OriginalActorMessageId == _actorMessageId &&
-                    HasCorrectReceivers(m))),
+                    HasCorrectReceiversWithMeteredData(m, input))),
             Times.Once);
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
@@ -243,7 +244,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_TerminatedInstance_When_HandleAsync_Then_NothingHappens()
     {
         // Arrange
-        var (instance, inputStream) = CreateTerminatedSendMeasurementsInstance();
+        var (instance, inputStream, input) = CreateTerminatedSendMeasurementsInstance();
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -273,7 +274,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_IsNotSentToMeasurements_When_HandleAsync_Then_ThrowsException_AndThen_ActorMessagesNotEnqueued()
     {
         // Arrange
-        var (instance, inputStream) = CreateSendMeasurementsInstance();
+        var (instance, inputStream, input) = CreateSendMeasurementsInstance();
         instance.MarkAsBusinessValidationSucceeded(_now);
         // SentToMeasurements is not set.
 
@@ -313,7 +314,10 @@ public class EnqueueMeasurementsHandlerV1Tests
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
 
-    private (SendMeasurementsInstance Instance, Stream InputStream) CreateSendMeasurementsInstance()
+    private (
+        SendMeasurementsInstance Instance,
+        Stream InputStream,
+        ForwardMeteredDataInputV1 Input) CreateSendMeasurementsInstance()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteringPointId(_meteringPointId.Value)
@@ -341,10 +345,13 @@ public class EnqueueMeasurementsHandlerV1Tests
         var inputAsStream = new MemoryStream();
         JsonSerializer.Serialize(inputAsStream, input);
 
-        return (instance, inputAsStream);
+        return (instance, inputAsStream, input);
     }
 
-    private (SendMeasurementsInstance Instance, Stream InputStream) CreateRunningSendMeasurementsInstance()
+    private (
+        SendMeasurementsInstance Instance,
+        Stream InputStream,
+        ForwardMeteredDataInputV1 Input) CreateRunningSendMeasurementsInstance()
     {
         var result = CreateSendMeasurementsInstance();
         result.Instance.MarkAsBusinessValidationSucceeded(_now);
@@ -353,7 +360,10 @@ public class EnqueueMeasurementsHandlerV1Tests
         return result;
     }
 
-    private (SendMeasurementsInstance Instance, Stream InputStream) CreateTerminatedSendMeasurementsInstance()
+    private (
+        SendMeasurementsInstance Instance,
+        Stream InputStream,
+        ForwardMeteredDataInputV1 Input) CreateTerminatedSendMeasurementsInstance()
     {
         var result = CreateSendMeasurementsInstance();
         result.Instance.MarkAsTerminated(_now);
@@ -361,13 +371,13 @@ public class EnqueueMeasurementsHandlerV1Tests
         return result;
     }
 
-    private bool HasCorrectReceivers(ForwardMeteredDataAcceptedV1 m)
+    private bool HasCorrectReceiversWithMeteredData(ForwardMeteredDataAcceptedV1 acceptedMessage, ForwardMeteredDataInputV1 input)
     {
         // There is only one period in the test data, so there should only be one ReceiversWithMeteredData.
-        if (m.ReceiversWithMeteredData.Count != 1)
+        if (acceptedMessage.ReceiversWithMeteredData.Count != 1)
             return false;
 
-        var receiversWithMeteredData = m.ReceiversWithMeteredData.Single();
+        var receiversWithMeteredData = acceptedMessage.ReceiversWithMeteredData.Single();
 
         // Metering point type is consumption, which means there should be two receivers (energy supplier and danish energy agency).
         var hasEnergySupplier = receiversWithMeteredData.Actors.Any(
@@ -380,10 +390,20 @@ public class EnqueueMeasurementsHandlerV1Tests
                 a.ActorNumber == ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber) &&
                 a.ActorRole == ActorRole.DanishEnergyAgency);
 
+        // Has correct metered data
+        var hasCorrectMeteredDataCount = receiversWithMeteredData.MeteredData.Count == input.MeteredDataList.Count;
+        var hasCorrectMeteredDataQuantity = receiversWithMeteredData.MeteredData.Sum(m => m.EnergyQuantity) ==
+                                           input.MeteredDataList.Sum(m => decimal.Parse(m.EnergyQuantity!));
+        var hasCorrectDates = acceptedMessage.StartDateTime == InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value.ToDateTimeOffset()
+            && acceptedMessage.EndDateTime == InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value.ToDateTimeOffset();
+
         // There should be exactly two actors in the ReceiversWithMeteredData, one for the energy supplier and one
         // for the danish energy agency.
         return receiversWithMeteredData.Actors.Count == 2 &&
                hasEnergySupplier &&
-               hasDanishEnergyAgency;
+               hasDanishEnergyAgency &&
+               hasCorrectMeteredDataCount &&
+               hasCorrectMeteredDataQuantity &&
+               hasCorrectDates;
     }
 }

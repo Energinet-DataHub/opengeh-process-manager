@@ -1,8 +1,12 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 2.3.7
+## Version 2.4.1
 
 - No functional changes.
+
+## Version 2.4.0
+
+- Extend `ForwardMeteredDataInputV1` with property `DataSource` which by default is set to `ActorSystem`.
 
 ## Version 2.3.6
 

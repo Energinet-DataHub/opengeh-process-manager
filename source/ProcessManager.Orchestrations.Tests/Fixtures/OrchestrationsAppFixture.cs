@@ -93,6 +93,10 @@ public class OrchestrationsAppFixture : IAsyncLifetime
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
             IntegrationTestConfiguration.Credential);
+        EnqueueBrs025ServiceBusListener = new ServiceBusListenerMock(
+            OrchestrationsAppManager.TestLogger,
+            IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
+            IntegrationTestConfiguration.Credential);
         EnqueueBrs026ServiceBusListener = new ServiceBusListenerMock(
             OrchestrationsAppManager.TestLogger,
             IntegrationTestConfiguration.ServiceBusFullyQualifiedNamespace,
@@ -125,6 +129,8 @@ public class OrchestrationsAppFixture : IAsyncLifetime
     public ServiceBusListenerMock EnqueueBrs023027ServiceBusListener { get; }
 
     public ServiceBusListenerMock EnqueueBrs024ServiceBusListener { get; }
+
+    public ServiceBusListenerMock EnqueueBrs025ServiceBusListener { get; }
 
     public ServiceBusListenerMock EnqueueBrs026ServiceBusListener { get; }
 
@@ -190,6 +196,9 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await EnqueueBrs024ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediEnqueueTopicResources.Brs024Subscription.TopicName,
             ediEnqueueTopicResources.Brs024Subscription.SubscriptionName);
+        await EnqueueBrs025ServiceBusListener.AddTopicSubscriptionListenerAsync(
+            ediEnqueueTopicResources.Brs025Subscription.TopicName,
+            ediEnqueueTopicResources.Brs025Subscription.SubscriptionName);
         await EnqueueBrs026ServiceBusListener.AddTopicSubscriptionListenerAsync(
             ediEnqueueTopicResources.Brs026Subscription.TopicName,
             ediEnqueueTopicResources.Brs026Subscription.SubscriptionName);
@@ -236,6 +245,7 @@ public class OrchestrationsAppFixture : IAsyncLifetime
         await ServiceBusResourceProvider.DisposeAsync();
         await EnqueueBrs023027ServiceBusListener.DisposeAsync();
         await EnqueueBrs024ServiceBusListener.DisposeAsync();
+        await EnqueueBrs025ServiceBusListener.DisposeAsync();
         await EnqueueBrs026ServiceBusListener.DisposeAsync();
         await EnqueueBrs028ServiceBusListener.DisposeAsync();
         await IntegrationEventServiceBusListener.DisposeAsync();

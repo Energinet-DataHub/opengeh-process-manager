@@ -33,6 +33,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Extensions.Options;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_023_027;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_026;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_026_028.BRS_028;
 using Energinet.DataHub.ProcessManager.Orchestrations.Extensions.DependencyInjection;
@@ -607,12 +608,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
         SubscriptionProperties Brs021ForwardMeteredDataSubscription,
         SubscriptionProperties Brs023027Subscription,
         SubscriptionProperties Brs024Subscription,
+        SubscriptionProperties Brs025Subscription,
         SubscriptionProperties Brs026Subscription,
         SubscriptionProperties Brs028Subscription)
     {
         private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forwardmetereddata";
         private const string Brs023027SubscriptionName = "brs-023-027";
         private const string Brs024SubscriptionName = "brs-024";
+        private const string Brs025SubscriptionName = "brs-025";
         private const string Brs026SubscriptionName = "brs-026";
         private const string Brs028SubscriptionName = "brs-028";
 
@@ -637,6 +640,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_023_027.V1))
                 .AddSubscription(Brs024SubscriptionName)
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_024.V1))
+                .AddSubscription(Brs025SubscriptionName)
+                    .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_025.V1))
                 .AddSubscription(Brs026SubscriptionName)
                     .AddSubjectFilter(EnqueueActorMessagesV1.BuildServiceBusMessageSubject(Brs_026.V1))
                 .AddSubscription(Brs028SubscriptionName)
@@ -659,6 +664,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 .Single(x => x.SubscriptionName.Equals(Brs023027SubscriptionName));
             var enqueueBrs024Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs024SubscriptionName));
+            var enqueueBrs025Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs025SubscriptionName));
             var enqueueBrs026Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs026SubscriptionName));
             var enqueueBrs028Subscription = topic.Subscriptions
@@ -669,6 +676,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 Brs021ForwardMeteredDataSubscription: enqueueBrs021ForwardMeteredDataSubscription,
                 Brs023027Subscription: enqueueBrs023027Subscription,
                 Brs024Subscription: enqueueBrs024Subscription,
+                Brs025Subscription: enqueueBrs025Subscription,
                 Brs026Subscription: enqueueBrs026Subscription,
                 Brs028Subscription: enqueueBrs028Subscription);
         }

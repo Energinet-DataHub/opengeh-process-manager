@@ -58,10 +58,10 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
                 var handler = scope.ServiceProvider.GetRequiredService<EnqueueMeasurementsHandlerV1>();
                 var brs021ForwardMeteredDataNotifyVersion = GetBrs021ForwardMeteredDataNotifyVersion(message);
 
-                var orchestrationInstanceId = GetOrchestrationInstanceId(message, brs021ForwardMeteredDataNotifyVersion);
+                var instanceId = GetInstanceId(message, brs021ForwardMeteredDataNotifyVersion);
 
-                _logger.LogInformation("Received notification from Measurements for Orchestration Instance: {OrchestrationInstanceId}", orchestrationInstanceId);
-                await handler.HandleAsync(orchestrationInstanceId).ConfigureAwait(false);
+                _logger.LogInformation("Received notification from Measurements for Instance: {InstanceId}", instanceId);
+                await handler.HandleAsync(instanceId).ConfigureAwait(false);
             });
 
             // Wait for all tasks to complete
@@ -75,11 +75,11 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
         }
     }
 
-    private static OrchestrationInstanceId GetOrchestrationInstanceId(
+    private static Guid GetInstanceId(
         EventData message,
         Brs021ForwardMeteredDataNotifyVersion brs021ForwardMeteredDataNotifyVersion)
     {
-        var orchestrationInstanceId = brs021ForwardMeteredDataNotifyVersion.Version switch
+        var instanceId = brs021ForwardMeteredDataNotifyVersion.Version switch
         {
             "1" or "v1" => HandleV1(message.EventBody),
             _ => throw new ArgumentOutOfRangeException(
@@ -87,7 +87,7 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
                 actualValue: brs021ForwardMeteredDataNotifyVersion.Version,
                 message: $"Unhandled {nameof(Brs021ForwardMeteredDataNotifyVersion)} version."),
         };
-        return orchestrationInstanceId;
+        return instanceId;
     }
 
     private static Brs021ForwardMeteredDataNotifyVersion GetBrs021ForwardMeteredDataNotifyVersion(EventData message)
@@ -99,13 +99,13 @@ public class EnqueueMeteredDataTrigger_Brs_021_ForwardMeteredData_V1(
         return brs021ForwardMeteredDataNotifyVersion;
     }
 
-    private static OrchestrationInstanceId HandleV1(BinaryData messageEventBody)
+    private static Guid HandleV1(BinaryData messageEventBody)
     {
         var notifyV1 = Brs021ForwardMeteredDataNotifyV1.Parser.ParseFrom(messageEventBody);
 
         if (notifyV1 is null)
             throw new InvalidOperationException($"Failed to deserialize message to {nameof(Brs021ForwardMeteredDataNotifyV1)}.");
 
-        return new OrchestrationInstanceId(Guid.Parse(notifyV1.OrchestrationInstanceId));
+        return Guid.Parse(notifyV1.OrchestrationInstanceId);
     }
 }

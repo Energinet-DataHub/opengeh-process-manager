@@ -31,6 +31,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
@@ -323,7 +324,7 @@ public class StartForwardMeteredDataHandlerV1(
         // Creates an orchestration instance (if it doesn't exist) and transitions it to queued state.
         var orchestrationInstanceId = await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                OrchestrationDescriptionBuilder.UniqueName.MapToDomain(),
+                Brs_021_ForwardedMeteredData.V1.MapToDomain(),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),
@@ -373,8 +374,7 @@ public class StartForwardMeteredDataHandlerV1(
                 meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null,
                 idempotencyKey: idempotencyKey);
 
-            using var inputAsStream = new MemoryStream();
-            await JsonSerializer.SerializeAsync(inputAsStream, input).ConfigureAwait(false);
+            using var inputAsStream = await input.SerializeToStreamAsync().ConfigureAwait(false);
 
             await _sendMeasurementsInstanceRepository.AddAsync(instance, inputAsStream)
                 .ConfigureAwait(false);
@@ -646,7 +646,7 @@ public class StartForwardMeteredDataHandlerV1(
         var actorIdentity = ((ActorIdentity)orchestrationInstance.Lifecycle.CreatedBy.Value).Actor;
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                OrchestrationDescriptionBuilder.UniqueName,
+                Brs_021_ForwardedMeteredData.V1,
                 orchestrationInstance.Id.Value,
                 new ActorIdentityDto(
                     ActorNumber.Create(actorIdentity.Number.Value),
@@ -670,7 +670,7 @@ public class StartForwardMeteredDataHandlerV1(
         IReadOnlyCollection<ValidationError> validationErrors)
     {
         // If the step is already terminated (idempotency/retry check), do nothing.
-        if (instance.IsSentToEnqueueActorMessagesAt)
+        if (instance.IsSentToEnqueueActorMessages)
             return;
 
         // Ensure always using the same idempotency key. Messages will only be enqueued once per instance,
@@ -678,13 +678,13 @@ public class StartForwardMeteredDataHandlerV1(
         var idempotencyKey = instance.Id.Value;
 
         await _enqueueActorMessagesClient.EnqueueAsync(
-                OrchestrationDescriptionBuilder.UniqueName,
-                instance.Id.Value,
-                new ActorIdentityDto(
+                orchestration: Brs_021_ForwardedMeteredData.V1,
+                orchestrationInstanceId: instance.Id.Value,
+                orchestrationStartedBy: new ActorIdentityDto(
                     instance.CreatedByActorNumber,
                     instance.CreatedByActorRole),
-                idempotencyKey,
-                new ForwardMeteredDataRejectedV1(
+                idempotencyKey: idempotencyKey,
+                data: new ForwardMeteredDataRejectedV1(
                     forwardMeteredDataInput.ActorMessageId,
                     forwardMeteredDataInput.TransactionId,
                     ForwardedForActorRole: ActorRole.FromName(forwardMeteredDataInput.ActorRole),

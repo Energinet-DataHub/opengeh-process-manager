@@ -58,7 +58,7 @@ public class MeasurementsClient(
                     Quality = MeasurementsMapper.Quality.Map(p.Quality),
                 }));
 
-        // Serialize the data to a byte array
+        // Serialize the data to a byte array.
         var eventData = new EventData(data.ToByteArray());
 
         var measurementEventHubProducerClient = _measurementsEventHubProducerClientFactory

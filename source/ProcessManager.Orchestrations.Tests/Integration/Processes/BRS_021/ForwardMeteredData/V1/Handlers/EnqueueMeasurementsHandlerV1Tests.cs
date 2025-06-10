@@ -380,11 +380,11 @@ public class EnqueueMeasurementsHandlerV1Tests
         var receiversWithMeteredData = acceptedMessage.ReceiversWithMeteredData.Single();
 
         // Metering point type is consumption, which means there should be two receivers (energy supplier and danish energy agency).
+        var hasCorrectActorsCount = receiversWithMeteredData.Actors.Count == 2;
         var hasEnergySupplier = receiversWithMeteredData.Actors.Any(
             a =>
                 a.ActorNumber == _energySupplier &&
                 a.ActorRole == ActorRole.EnergySupplier);
-
         var hasDanishEnergyAgency = receiversWithMeteredData.Actors.Any(
             a =>
                 a.ActorNumber == ActorNumber.Create(DataHubDetails.DanishEnergyAgencyNumber) &&
@@ -397,13 +397,15 @@ public class EnqueueMeasurementsHandlerV1Tests
         var hasCorrectDates = acceptedMessage.StartDateTime == InstantPatternWithOptionalSeconds.Parse(input.StartDateTime).Value.ToDateTimeOffset()
             && acceptedMessage.EndDateTime == InstantPatternWithOptionalSeconds.Parse(input.EndDateTime!).Value.ToDateTimeOffset();
 
-        // There should be exactly two actors in the ReceiversWithMeteredData, one for the energy supplier and one
-        // for the danish energy agency.
-        return receiversWithMeteredData.Actors.Count == 2 &&
-               hasEnergySupplier &&
-               hasDanishEnergyAgency &&
-               hasCorrectMeteredDataCount &&
-               hasCorrectMeteredDataQuantity &&
-               hasCorrectDates;
+        return
+            // Correct actors (receivers)
+            hasCorrectActorsCount &&
+            hasEnergySupplier &&
+            hasDanishEnergyAgency &&
+
+            // Correct metered data
+            hasCorrectMeteredDataCount &&
+            hasCorrectMeteredDataQuantity &&
+            hasCorrectDates;
     }
 }

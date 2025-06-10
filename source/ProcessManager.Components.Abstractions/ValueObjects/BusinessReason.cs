@@ -26,6 +26,7 @@ public record BusinessReason : DataHubRecordType<BusinessReason>
     public static readonly BusinessReason Correction = new("Correction");
     public static readonly BusinessReason PeriodicMetering = new("PeriodicMetering");
     public static readonly BusinessReason PeriodicFlexMetering = new("PeriodicFlexMetering");
+    public static readonly BusinessReason YearlyMetering = new("YearlyMetering");
 
     [JsonConstructor]
     private BusinessReason(string name)

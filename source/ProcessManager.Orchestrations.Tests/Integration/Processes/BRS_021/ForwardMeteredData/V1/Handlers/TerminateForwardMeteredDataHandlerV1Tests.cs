@@ -49,7 +49,6 @@ public class TerminateForwardMeteredDataHandlerV1Tests
 
     private readonly Mock<IClock> _clock = new();
     private readonly Mock<IFeatureManager> _featureManager = new();
-    private readonly Mock<IFileStorageClient> _fileStorageClient = new();
 
     private readonly Instant _now = Instant.FromUtc(2025, 06, 06, 13, 37);
     private readonly ServiceProvider _serviceProvider;
@@ -89,7 +88,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
 
         Sut = new TerminateForwardMeteredDataHandlerV1(
             new OrchestrationInstanceRepository(DbContext),
-            new SendMeasurementsInstanceRepository(DbContext, _fileStorageClient.Object),
+            new SendMeasurementsInstanceRepository(DbContext, _serviceProvider.GetRequiredService<IFileStorageClient>()),
             _clock.Object,
             new TelemetryClient(new TelemetryConfiguration
             {

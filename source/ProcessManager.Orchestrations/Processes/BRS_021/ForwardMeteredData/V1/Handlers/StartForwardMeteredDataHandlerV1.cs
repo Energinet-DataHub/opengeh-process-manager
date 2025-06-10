@@ -31,6 +31,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
@@ -373,8 +374,7 @@ public class StartForwardMeteredDataHandlerV1(
                 meteringPointId: meteringPointId is not null ? new MeteringPointId(meteringPointId) : null,
                 idempotencyKey: idempotencyKey);
 
-            using var inputAsStream = new MemoryStream();
-            await JsonSerializer.SerializeAsync(inputAsStream, input).ConfigureAwait(false);
+            using var inputAsStream = await input.SerializeToStreamAsync().ConfigureAwait(false);
 
             await _sendMeasurementsInstanceRepository.AddAsync(instance, inputAsStream)
                 .ConfigureAwait(false);

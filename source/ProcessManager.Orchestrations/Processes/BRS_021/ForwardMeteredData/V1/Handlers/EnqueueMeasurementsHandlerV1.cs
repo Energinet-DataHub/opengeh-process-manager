@@ -90,10 +90,7 @@ public class EnqueueMeasurementsHandlerV1(
         }
 
         var inputStream = await _sendMeasurementsInstanceRepository.DownloadInputAsync(instance.FileStorageReference).ConfigureAwait(false);
-        var input = await JsonSerializer.DeserializeAsync<ForwardMeteredDataInputV1>(inputStream.Stream).ConfigureAwait(false);
-
-        if (input is null)
-            throw new InvalidOperationException($"Failed to deserialize input for SendMeasurementsInstance (Id={instance.Id}).");
+        var input = await inputStream.DeserializeForwardMeteredDataInputV1Async(instance.FileStorageReference).ConfigureAwait(false);
 
         // Only valid data will be enqueued
         var forwardMeteredDataInput = ForwardMeteredDataValidInput.From(input);

@@ -38,6 +38,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -273,8 +274,7 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         Assert.NotNull(sendMeasurementsInstance);
 
-        var fileStorageContent = await DownloadFileContent(sendMeasurementsInstance.FileStorageReference);
-        var inputFromFileStorage = fileStorageContent.ToObjectFromJson<ForwardMeteredDataInputV1>();
+        var inputFromFileStorage = await DownloadInputFromFileStorage(sendMeasurementsInstance.FileStorageReference);
 
         Assert.Equivalent(input, inputFromFileStorage);
     }
@@ -509,12 +509,11 @@ public class StartForwardMeteredDataHandlerV1Tests
             }));
     }
 
-    private async Task<BinaryData> DownloadFileContent(IFileStorageReference fileStorageReference)
+    private async Task<ForwardMeteredDataInputV1> DownloadInputFromFileStorage(IFileStorageReference fileStorageReference)
     {
-        var blobServiceClient = new BlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString);
-        var blobContainerClient = blobServiceClient.GetBlobContainerClient(fileStorageReference.Category);
-        var blobClient = blobContainerClient.GetBlobClient(fileStorageReference.Path);
-        var fileContent = await blobClient.DownloadContentAsync();
-        return fileContent.Value.Content;
+        var fileStorageClient = _serviceProvider.GetRequiredService<IFileStorageClient>();
+        var stream = await fileStorageClient.DownloadAsync(fileStorageReference, CancellationToken.None);
+        var input = await stream.DeserializeForwardMeteredDataInputV1Async(fileStorageReference);
+        return input;
     }
 }

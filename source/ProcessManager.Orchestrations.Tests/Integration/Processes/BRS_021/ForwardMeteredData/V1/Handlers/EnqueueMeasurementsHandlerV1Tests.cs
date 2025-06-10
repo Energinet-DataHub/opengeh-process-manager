@@ -29,6 +29,7 @@ using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
@@ -120,7 +121,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_RunningInstance_When_HandleAsync_Then_ActorMessagesAreEnqueued()
     {
         // Arrange
-        var (instance, inputStream, input) = CreateRunningSendMeasurementsInstance();
+        var (instance, inputStream, input) = await CreateRunningSendMeasurementsInstanceAsync();
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -165,7 +166,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_RunningInstance_AndGiven_AlreadyHasEnqueueIdempotencyKey_When_HandleAsync_Then_ActorMessagesAreEnqueuedWithSameIdempotencyKey()
     {
         // Arrange
-        var (instance, inputStream, input) = CreateRunningSendMeasurementsInstance();
+        var (instance, inputStream, input) = await CreateRunningSendMeasurementsInstanceAsync();
 
         // Send Measurements Instance uses it's instance id as the idempotency key, so it should always be the same
         // idempotency key for the same instance.
@@ -199,7 +200,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_InstanceStuckAtEnqueueActorMessages_When_HandleAsync_Then_ActorMessagesAreEnqueued()
     {
         // Arrange
-        var (instance, inputStream, input) = CreateRunningSendMeasurementsInstance();
+        var (instance, inputStream, input) = await CreateRunningSendMeasurementsInstanceAsync();
 
         // Simulate that the instance has terminated the ForwardToMeasurementsStep and
         // is stuck at the EnqueueActorMessages step
@@ -244,7 +245,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_TerminatedInstance_When_HandleAsync_Then_NothingHappens()
     {
         // Arrange
-        var (instance, inputStream, input) = CreateTerminatedSendMeasurementsInstance();
+        var (instance, inputStream, input) = await CreateTerminatedSendMeasurementsInstanceAsync();
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
@@ -274,7 +275,7 @@ public class EnqueueMeasurementsHandlerV1Tests
     public async Task Given_IsNotSentToMeasurements_When_HandleAsync_Then_ThrowsException_AndThen_ActorMessagesNotEnqueued()
     {
         // Arrange
-        var (instance, inputStream, input) = CreateSendMeasurementsInstance();
+        var (instance, inputStream, input) = await CreateSendMeasurementsInstanceAsync();
         instance.MarkAsBusinessValidationSucceeded(_now);
         // SentToMeasurements is not set.
 
@@ -314,10 +315,10 @@ public class EnqueueMeasurementsHandlerV1Tests
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
 
-    private (
+    private async Task<(
         SendMeasurementsInstance Instance,
         Stream InputStream,
-        ForwardMeteredDataInputV1 Input) CreateSendMeasurementsInstance()
+        ForwardMeteredDataInputV1 Input)> CreateSendMeasurementsInstanceAsync()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteringPointId(_meteringPointId.Value)
@@ -342,30 +343,29 @@ public class EnqueueMeasurementsHandlerV1Tests
             ],
             AdditionalRecipients: []));
 
-        var inputAsStream = new MemoryStream();
-        JsonSerializer.Serialize(inputAsStream, input);
+        var inputAsStream = await input.SerializeToStreamAsync();
 
         return (instance, inputAsStream, input);
     }
 
-    private (
+    private async Task<(
         SendMeasurementsInstance Instance,
         Stream InputStream,
-        ForwardMeteredDataInputV1 Input) CreateRunningSendMeasurementsInstance()
+        ForwardMeteredDataInputV1 Input)> CreateRunningSendMeasurementsInstanceAsync()
     {
-        var result = CreateSendMeasurementsInstance();
+        var result = await CreateSendMeasurementsInstanceAsync();
         result.Instance.MarkAsBusinessValidationSucceeded(_now);
         result.Instance.MarkAsSentToMeasurements(_now);
 
         return result;
     }
 
-    private (
+    private async Task<(
         SendMeasurementsInstance Instance,
         Stream InputStream,
-        ForwardMeteredDataInputV1 Input) CreateTerminatedSendMeasurementsInstance()
+        ForwardMeteredDataInputV1 Input)> CreateTerminatedSendMeasurementsInstanceAsync()
     {
-        var result = CreateSendMeasurementsInstance();
+        var result = await CreateSendMeasurementsInstanceAsync();
         result.Instance.MarkAsTerminated(_now);
 
         return result;

@@ -527,6 +527,9 @@ public class StartForwardMeteredDataHandlerV1(
         {
             // Clear validation errors, and behave as if business validation was a success
             validationErrors = [];
+            Logger.LogWarning(
+                "Cleared validation errors. DataSource = {DataSource}",
+                input.DataSource);
         }
 
         if (validationErrors.Any())

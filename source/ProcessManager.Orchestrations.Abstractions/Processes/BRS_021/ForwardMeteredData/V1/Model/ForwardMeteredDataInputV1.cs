@@ -34,9 +34,26 @@ public record ForwardMeteredDataInputV1(
     string StartDateTime,
     string? EndDateTime,
     string GridAccessProviderNumber,
-    IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> MeteredDataList)
+    IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> MeteredDataList,
+    ForwardMeteredDataInputV1.DataSourceEnum DataSource = ForwardMeteredDataInputV1.DataSourceEnum.ActorSystem)
     : IInputParameterDto
 {
+    /// <summary>
+    /// Specifies the channel through which we received the data.
+    /// </summary>
+    public enum DataSourceEnum
+    {
+        /// <summary>
+        /// Data was send the traditional way, from the actor's system to EDI.
+        /// </summary>
+        ActorSystem = 0,
+
+        /// <summary>
+        /// Data was send by a trigger that listen's for data from the Migration subsystem.
+        /// </summary>
+        MigrationSubsystem = 1,
+    }
+
     public record MeteredData(
         string? Position,
         string? EnergyQuantity,

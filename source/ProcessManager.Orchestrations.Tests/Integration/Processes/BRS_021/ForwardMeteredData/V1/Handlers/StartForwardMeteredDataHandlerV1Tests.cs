@@ -274,7 +274,7 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         Assert.NotNull(sendMeasurementsInstance);
 
-        var inputFromFileStorage = await DownloadInputFromFileStorage(sendMeasurementsInstance.FileStorageReference);
+        var inputFromFileStorage = await DownloadInputFromFileStorageAsync(sendMeasurementsInstance.FileStorageReference);
 
         Assert.Equivalent(input, inputFromFileStorage);
     }
@@ -509,7 +509,7 @@ public class StartForwardMeteredDataHandlerV1Tests
             }));
     }
 
-    private async Task<ForwardMeteredDataInputV1> DownloadInputFromFileStorage(IFileStorageReference fileStorageReference)
+    private async Task<ForwardMeteredDataInputV1> DownloadInputFromFileStorageAsync(IFileStorageReference fileStorageReference)
     {
         var fileStorageClient = _serviceProvider.GetRequiredService<IFileStorageClient>();
         var stream = await fileStorageClient.DownloadAsync(fileStorageReference, CancellationToken.None);

@@ -13,61 +13,75 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData;
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
+using Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
+using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1;
-using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using Moq;
 using NodaTime;
-using StepInstanceTerminationState = Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance.StepInstanceTerminationState;
 using TelemetryConfiguration = Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 
+[Collection(nameof(ProcessManagerAzuriteCollection))]
 public class EnqueueMeasurementsHandlerV1Tests
     : IClassFixture<ProcessManagerDatabaseFixture>, IAsyncLifetime
 {
     private readonly ProcessManagerDatabaseFixture _fixture;
+    private readonly ProcessManagerAzuriteFixture _azuriteFixture;
     private readonly Mock<IClock> _clock = new();
     private readonly Mock<IFeatureManager> _featureManager = new();
     private readonly Mock<IEnqueueActorMessagesClient> _enqueueActorMessagesClient = new();
-    private readonly Mock<IFileStorageClient> _fileStorageClient = new();
 
     private readonly Instant _now = Instant.FromUtc(2025, 06, 06, 13, 37);
     private readonly MeteringPointId _meteringPointId = new("123456789012345678");
     private readonly string _actorMessageId = Guid.NewGuid().ToString();
     private readonly ActorNumber _gridAccessProvider = ActorNumber.Create("1111111111111");
     private readonly ActorNumber _energySupplier = ActorNumber.Create("1111111111112");
+    private readonly ServiceProvider _serviceProvider;
 
-    public EnqueueMeasurementsHandlerV1Tests(ProcessManagerDatabaseFixture fixture)
+    public EnqueueMeasurementsHandlerV1Tests(ProcessManagerDatabaseFixture fixture, ProcessManagerAzuriteFixture azuriteFixture)
     {
         _fixture = fixture;
+        _azuriteFixture = azuriteFixture;
 
         _clock.Setup(c => c.GetCurrentInstant()).Returns(_now);
+
+        _featureManager
+            .Setup(fm => fm.IsEnabledAsync(FeatureFlagNames.UseNewSendMeasurementsTable))
+            .ReturnsAsync(true);
+
+        var services = new ServiceCollection();
+        services.AddTransient<IFileStorageClient, ProcessManagerBlobFileStorageClient>();
+        services.AddAzureClients(builder => builder
+            .AddBlobServiceClient(_azuriteFixture.AzuriteManager.BlobStorageConnectionString)
+            .WithName(ProcessManagerBlobFileStorageClient.ClientName));
+        _serviceProvider = services.BuildServiceProvider();
     }
 
     [NotNull]
     private ProcessManagerContext? DbContext { get; set; }
-
-    [NotNull]
-    private OrchestrationDescription? OrchestrationDescription { get; set; }
 
     [NotNull]
     private EnqueueMeasurementsHandlerV1? Sut { get; set; }
@@ -76,11 +90,11 @@ public class EnqueueMeasurementsHandlerV1Tests
     {
         DbContext = _fixture.DatabaseManager.CreateDbContext();
 
-        OrchestrationDescription = await CreateSendMeasurementsOrchestrationDescriptionAsync();
-
         Sut = new EnqueueMeasurementsHandlerV1(
             new OrchestrationInstanceRepository(DbContext),
-            new SendMeasurementsInstanceRepository(DbContext, _fileStorageClient.Object),
+            new SendMeasurementsInstanceRepository(
+                DbContext,
+                _serviceProvider.GetRequiredService<IFileStorageClient>()),
             _clock.Object,
             _enqueueActorMessagesClient.Object,
             new MeteringPointReceiversProvider(DateTimeZone.Utc),
@@ -97,46 +111,46 @@ public class EnqueueMeasurementsHandlerV1Tests
     {
         if (DbContext != null) // DbContext can be null if InitializeAsync fails
             await DbContext.DisposeAsync();
+
+        await _serviceProvider.DisposeAsync();
     }
 
     [Fact]
-    public async Task Given_RunningOrchestrationInstance_When_HandleAsync_Then_ActorMessagesAreEnqueued()
+    public async Task Given_RunningInstance_When_HandleAsync_Then_ActorMessagesAreEnqueued()
     {
         // Arrange
-        var orchestrationInstance = CreateRunningOrchestrationInstance();
+        var (instance, inputStream) = CreateRunningSendMeasurementsInstance();
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
-            setupContext.OrchestrationInstances.Add(orchestrationInstance);
+            var repository = new SendMeasurementsInstanceRepository(
+                setupContext,
+                _serviceProvider.GetRequiredService<IFileStorageClient>());
+            await repository.AddAsync(instance, inputStream);
             await setupContext.SaveChangesAsync();
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id.Value);
+        await Sut.HandleAsync(instance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var actualOrchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleAsync(oi => oi.Id == orchestrationInstance.Id);
-
-        var measurementsStep = actualOrchestrationInstance.GetStep(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
-        var enqueueStep = actualOrchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
+        var actualInstance = await assertionDbContext.SendMeasurementsInstances
+            .SingleAsync(oi => oi.Id == instance.Id);
 
         // - ForwardToMeasurements step should be terminated with success.
         // - EnqueueActorMessages step should be running.
         Assert.Multiple(
-            () => Assert.Equal(StepInstanceLifecycleState.Terminated, measurementsStep.Lifecycle.State),
-            () => Assert.Equal(StepInstanceTerminationState.Succeeded, measurementsStep.Lifecycle.TerminationState),
-            () => Assert.Equal(_now, measurementsStep.Lifecycle.TerminatedAt),
-            () => Assert.Equal(StepInstanceLifecycleState.Running, enqueueStep.Lifecycle.State),
-            () => Assert.Equal(_now, enqueueStep.Lifecycle.StartedAt),
-            () => Assert.Null(enqueueStep.Lifecycle.TerminationState));
+            () => Assert.True(actualInstance.IsReceivedFromMeasurements),
+            () => Assert.Equal(_now, actualInstance.ReceivedFromMeasurementsAt),
+            () => Assert.True(actualInstance.IsSentToEnqueueActorMessages),
+            () => Assert.Equal(_now, actualInstance.SentToEnqueueActorMessagesAt));
 
         _enqueueActorMessagesClient.Verify(
             client => client.EnqueueAsync(
                 Brs_021_ForwardedMeteredData.V1,
-                orchestrationInstance.Id.Value,
-                orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
+                instance.Id.Value,
+                new ActorIdentityDto(actualInstance.CreatedByActorNumber, actualInstance.CreatedByActorRole),
                 It.IsAny<Guid>(),
                 It.Is<ForwardMeteredDataAcceptedV1>(m =>
                     m.MeteringPointId == _meteringPointId.Value &&
@@ -147,32 +161,33 @@ public class EnqueueMeasurementsHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_RunningOrchestrationInstance_AndGiven_AlreadyHasEnqueueIdempotencyKey_When_HandleAsync_Then_ActorMessagesAreEnqueuedWithSameIdempotencyKey()
+    public async Task Given_RunningInstance_AndGiven_AlreadyHasEnqueueIdempotencyKey_When_HandleAsync_Then_ActorMessagesAreEnqueuedWithSameIdempotencyKey()
     {
         // Arrange
-        var orchestrationInstance = CreateRunningOrchestrationInstance();
+        var (instance, inputStream) = CreateRunningSendMeasurementsInstance();
 
-        var enqueueIdempotencyKey = Guid.NewGuid();
-        var enqueueStep = orchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
-        enqueueStep.CustomState.SetFromInstance(
-            new EnqueueActorMessagesStepCustomStateV1(
-                IdempotencyKey: enqueueIdempotencyKey));
+        // Send Measurements Instance uses it's instance id as the idempotency key, so it should always be the same
+        // idempotency key for the same instance.
+        var enqueueIdempotencyKey = instance.Id.Value;
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
-            setupContext.OrchestrationInstances.Add(orchestrationInstance);
+            var repository = new SendMeasurementsInstanceRepository(
+                setupContext,
+                _serviceProvider.GetRequiredService<IFileStorageClient>());
+            await repository.AddAsync(instance, inputStream);
             await setupContext.SaveChangesAsync();
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id.Value);
+        await Sut.HandleAsync(instance.Id.Value);
 
         // Assert
         _enqueueActorMessagesClient.Verify(
             client => client.EnqueueAsync(
                 Brs_021_ForwardedMeteredData.V1,
-                orchestrationInstance.Id.Value,
-                orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
+                instance.Id.Value,
+                new ActorIdentityDto(instance.CreatedByActorNumber, instance.CreatedByActorRole),
                 enqueueIdempotencyKey,
                 It.IsAny<ForwardMeteredDataAcceptedV1>()),
             Times.Once);
@@ -180,50 +195,41 @@ public class EnqueueMeasurementsHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceStuckAtEnqueueActorMessages_When_HandleAsync_Then_ActorMessagesAreEnqueued()
+    public async Task Given_InstanceStuckAtEnqueueActorMessages_When_HandleAsync_Then_ActorMessagesAreEnqueued()
     {
         // Arrange
-        var orchestrationInstance = CreateRunningOrchestrationInstance();
+        var (instance, inputStream) = CreateRunningSendMeasurementsInstance();
 
-        // Simulate that the orchestration instance has terminated the ForwardToMeasurementsStep and
+        // Simulate that the instance has terminated the ForwardToMeasurementsStep and
         // is stuck at the EnqueueActorMessages step
-        orchestrationInstance.TransitionStepToTerminated(
-            sequence: OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,
-            StepInstanceTerminationState.Succeeded,
-            _clock.Object);
-
-        orchestrationInstance.TransitionStepToRunning(
-            sequence: OrchestrationDescriptionBuilder.EnqueueActorMessagesStep,
-            _clock.Object);
+        instance.MarkAsReceivedFromMeasurements(_now);
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
-            setupContext.OrchestrationInstances.Add(orchestrationInstance);
+            var repository = new SendMeasurementsInstanceRepository(
+                setupContext,
+                _serviceProvider.GetRequiredService<IFileStorageClient>());
+            await repository.AddAsync(instance, inputStream);
             await setupContext.SaveChangesAsync();
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id.Value);
+        await Sut.HandleAsync(instance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var actualOrchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleAsync(oi => oi.Id == orchestrationInstance.Id);
+        var actualInstance = await assertionDbContext.SendMeasurementsInstances
+            .SingleAsync(oi => oi.Id == instance.Id);
 
-        var enqueueStep = actualOrchestrationInstance.GetStep(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
-
-        // - EnqueueActorMessages step should still be running.
-        Assert.Multiple(
-            () => Assert.Equal(StepInstanceLifecycleState.Running, enqueueStep.Lifecycle.State),
-            () => Assert.Null(enqueueStep.Lifecycle.TerminationState),
-            () => Assert.Null(enqueueStep.Lifecycle.TerminatedAt));
+        // - EnqueueActorMessages step should be running.
+        Assert.True(actualInstance.IsSentToEnqueueActorMessages);
 
         // - Enqueue actor messages client should be called with the correct parameters.
         _enqueueActorMessagesClient.Verify(
             client => client.EnqueueAsync(
                 Brs_021_ForwardedMeteredData.V1,
-                orchestrationInstance.Id.Value,
-                orchestrationInstance.Lifecycle.CreatedBy.Value.MapToDto(),
+                instance.Id.Value,
+                new ActorIdentityDto(instance.CreatedByActorNumber, instance.CreatedByActorRole),
                 It.IsAny<Guid>(),
                 It.Is<ForwardMeteredDataAcceptedV1>(m =>
                     m.MeteringPointId == _meteringPointId.Value &&
@@ -234,103 +240,70 @@ public class EnqueueMeasurementsHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_TerminatedOrchestrationInstance_When_HandleAsync_Then_NothingHappens()
+    public async Task Given_TerminatedInstance_When_HandleAsync_Then_NothingHappens()
     {
         // Arrange
-        var orchestrationInstance = CreateTerminatedOrchestrationInstance();
+        var (instance, inputStream) = CreateTerminatedSendMeasurementsInstance();
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
-            setupContext.OrchestrationInstances.Add(orchestrationInstance);
+            var repository = new SendMeasurementsInstanceRepository(
+                setupContext,
+                _serviceProvider.GetRequiredService<IFileStorageClient>());
+            await repository.AddAsync(instance, inputStream);
             await setupContext.SaveChangesAsync();
         }
 
         // Act
-        await Sut.HandleAsync(orchestrationInstance.Id.Value);
+        await Sut.HandleAsync(instance.Id.Value);
 
         // Assert
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var actualOrchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleAsync(oi => oi.Id == orchestrationInstance.Id);
+        var actualInstance = await assertionDbContext.SendMeasurementsInstances
+            .SingleAsync(oi => oi.Id == instance.Id);
 
-        // - The orchestration instance should not be changed.
-        Assert.Equivalent(orchestrationInstance, actualOrchestrationInstance);
+        // - The instance should not be changed.
+        Assert.Equivalent(instance, actualInstance);
 
         // - The enqueue actor messages client should not be called.
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Given_QueuedOrchestrationInstance_When_HandleAsync_Then_ThrowsException_AndThen_ActorMessagesNotEnqueued()
+    public async Task Given_IsNotSentToMeasurements_When_HandleAsync_Then_ThrowsException_AndThen_ActorMessagesNotEnqueued()
     {
         // Arrange
-        var orchestrationInstance = CreateOrchestrationInstance();
-        orchestrationInstance.Lifecycle.TransitionToQueued(_clock.Object);
+        var (instance, inputStream) = CreateSendMeasurementsInstance();
+        instance.MarkAsBusinessValidationSucceeded(_now);
+        // SentToMeasurements is not set.
 
         await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
         {
-            setupContext.OrchestrationInstances.Add(orchestrationInstance);
+            var repository = new SendMeasurementsInstanceRepository(
+                setupContext,
+                _serviceProvider.GetRequiredService<IFileStorageClient>());
+            await repository.AddAsync(instance, inputStream);
             await setupContext.SaveChangesAsync();
         }
 
         // Act
-        var act = () => Sut.HandleAsync(orchestrationInstance.Id.Value);
+        var act = () => Sut.HandleAsync(instance.Id.Value);
 
         // Assert
         await Assert.ThrowsAsync<InvalidOperationException>(act);
 
         await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var actualOrchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleAsync(oi => oi.Id == orchestrationInstance.Id);
+        var actualInstance = await assertionDbContext.SendMeasurementsInstances
+            .SingleAsync(oi => oi.Id == instance.Id);
 
-        // - The orchestration instance should not be changed.
-        Assert.Equivalent(orchestrationInstance, actualOrchestrationInstance);
-
-        _enqueueActorMessagesClient.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task Given_ForwardToMeasurementsStepNotRunning_When_HandleAsync_Then_ThrowsException_AndThen_ActorMessagesNotEnqueued()
-    {
-        // Arrange
-        var orchestrationInstance = CreateOrchestrationInstance();
-        orchestrationInstance.Lifecycle.TransitionToQueued(_clock.Object);
-        orchestrationInstance.Lifecycle.TransitionToRunning(_clock.Object);
-
-        orchestrationInstance.TransitionStepToRunning(
-            OrchestrationDescriptionBuilder.BusinessValidationStep,
-            _clock.Object);
-        orchestrationInstance.TransitionStepToTerminated(
-            OrchestrationDescriptionBuilder.BusinessValidationStep,
-            StepInstanceTerminationState.Succeeded,
-            _clock.Object);
-
-        // ForwardToMeasurements step is not transitioned to running.
-
-        await using (var setupContext = _fixture.DatabaseManager.CreateDbContext())
-        {
-            setupContext.OrchestrationInstances.Add(orchestrationInstance);
-            await setupContext.SaveChangesAsync();
-        }
-
-        // Act
-        var act = () => Sut.HandleAsync(orchestrationInstance.Id.Value);
-
-        // Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(act);
-
-        await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
-        var actualOrchestrationInstance = await assertionDbContext.OrchestrationInstances
-            .SingleAsync(oi => oi.Id == orchestrationInstance.Id);
-
-        // - The orchestration instance should not be changed.
-        Assert.Equivalent(orchestrationInstance, actualOrchestrationInstance);
+        // - The instance should not be changed.
+        Assert.Equivalent(instance, actualInstance);
 
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceDoesntExist_When_HandleAsync_Then_ThrowsException()
+    public async Task Given_InstanceDoesntExist_When_HandleAsync_Then_ThrowsException()
     {
         // Act
         var act = () => Sut.HandleAsync(Guid.NewGuid());
@@ -340,7 +313,7 @@ public class EnqueueMeasurementsHandlerV1Tests
         _enqueueActorMessagesClient.VerifyNoOtherCalls();
     }
 
-    private OrchestrationInstance CreateOrchestrationInstance()
+    private (SendMeasurementsInstance Instance, Stream InputStream) CreateSendMeasurementsInstance()
     {
         var input = new ForwardMeteredDataInputV1Builder()
             .WithMeteringPointId(_meteringPointId.Value)
@@ -348,19 +321,14 @@ public class EnqueueMeasurementsHandlerV1Tests
             .WithMeteringPointType(MeteringPointType.Production.Name) // Used to determine the receivers
             .Build();
 
-        var instance = OrchestrationInstance.CreateFromDescription(
-            identity: new ActorIdentity(Actor.From(input.ActorNumber, input.ActorRole)),
-            description: OrchestrationDescription,
-            skipStepsBySequence: [],
-            clock: _clock.Object,
-            meteringPointId: new MeteringPointId(input.MeteringPointId!),
-            actorMessageId: new ActorMessageId(input.ActorMessageId),
+        var instance = new SendMeasurementsInstance(
+            createdAt: _clock.Object.GetCurrentInstant(),
+            createdBy: Actor.From(input.ActorNumber, input.ActorRole),
             transactionId: new TransactionId(input.TransactionId),
+            meteringPointId: _meteringPointId,
             idempotencyKey: IdempotencyKey.CreateNew());
 
-        instance.ParameterValue.SetFromInstance(input);
-
-        instance.CustomState.SetFromInstance(new ForwardMeteredDataCustomStateV2(
+        instance.MasterData.SetFromInstance(new ForwardMeteredDataCustomStateV2(
             HistoricalMeteringPointMasterData: [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(
                     new MeteringPointMasterDataBuilder().BuildFromInput(
@@ -370,56 +338,27 @@ public class EnqueueMeasurementsHandlerV1Tests
             ],
             AdditionalRecipients: []));
 
-        return instance;
+        var inputAsStream = new MemoryStream();
+        JsonSerializer.Serialize(inputAsStream, input);
+
+        return (instance, inputAsStream);
     }
 
-    private OrchestrationInstance CreateRunningOrchestrationInstance()
+    private (SendMeasurementsInstance Instance, Stream InputStream) CreateRunningSendMeasurementsInstance()
     {
-        var instance = CreateOrchestrationInstance();
-        instance.Lifecycle.TransitionToQueued(_clock.Object);
-        instance.Lifecycle.TransitionToRunning(_clock.Object);
+        var result = CreateSendMeasurementsInstance();
+        result.Instance.MarkAsBusinessValidationSucceeded(_now);
+        result.Instance.MarkAsSentToMeasurements(_now);
 
-        instance.TransitionStepToRunning(
-            OrchestrationDescriptionBuilder.BusinessValidationStep,
-            _clock.Object);
-        instance.TransitionStepToTerminated(
-            OrchestrationDescriptionBuilder.BusinessValidationStep,
-            StepInstanceTerminationState.Succeeded,
-            _clock.Object);
-
-        instance.TransitionStepToRunning(
-            OrchestrationDescriptionBuilder.ForwardToMeasurementsStep,
-            _clock.Object);
-
-        return instance;
+        return result;
     }
 
-    private OrchestrationInstance CreateTerminatedOrchestrationInstance()
+    private (SendMeasurementsInstance Instance, Stream InputStream) CreateTerminatedSendMeasurementsInstance()
     {
-        var instance = CreateOrchestrationInstance();
-        instance.Lifecycle.TransitionToQueued(_clock.Object);
-        instance.Lifecycle.TransitionToRunning(_clock.Object);
-        instance.Lifecycle.TransitionToSucceeded(_clock.Object);
+        var result = CreateSendMeasurementsInstance();
+        result.Instance.MarkAsTerminated(_now);
 
-        return instance;
-    }
-
-    private async Task<OrchestrationDescription> CreateSendMeasurementsOrchestrationDescriptionAsync()
-    {
-        await using var setupContext = _fixture.DatabaseManager.CreateDbContext();
-
-        // Disable all existing orchestration descriptions to ensure that only the one we add is used
-        var existingOrchestrationDescriptions = await setupContext.OrchestrationDescriptions
-            .ToListAsync();
-        existingOrchestrationDescriptions.ForEach(od => od.IsEnabled = false);
-
-        // Create a new orchestration description
-        var orchestrationDescription = new OrchestrationDescriptionBuilder().Build();
-        setupContext.OrchestrationDescriptions.Add(orchestrationDescription);
-
-        await setupContext.SaveChangesAsync();
-
-        return orchestrationDescription;
+        return result;
     }
 
     private bool HasCorrectReceivers(ForwardMeteredDataAcceptedV1 m)

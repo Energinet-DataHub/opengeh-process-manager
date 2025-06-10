@@ -103,6 +103,8 @@ public class SendMeasurementsInstance
 
     public Instant? ReceivedFromMeasurementsAt { get; private set; }
 
+    public bool IsReceivedFromMeasurements => ReceivedFromMeasurementsAt is not null;
+
     public Instant? SentToEnqueueActorMessagesAt { get; private set; }
 
     public bool IsSentToEnqueueActorMessages => SentToEnqueueActorMessagesAt is not null;

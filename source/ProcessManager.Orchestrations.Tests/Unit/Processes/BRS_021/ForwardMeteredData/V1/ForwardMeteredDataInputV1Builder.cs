@@ -22,8 +22,8 @@ public class ForwardMeteredDataInputV1Builder
 {
     private const string ActorNumber = "1234567890123";
 
-    private string _actorMessageId = "MessageId";
-    private string _transactionId = "TransactionId";
+    private string _actorMessageId = Guid.NewGuid().ToString();
+    private string _transactionId = Guid.NewGuid().ToString();
     private string _actorNumber = ActorNumber;
     private string _actorRole = ActorRole.GridAccessProvider.Name;
     private string _businessReason = BusinessReason.PeriodicMetering.Name; // Due to validation in EDI this can either be PeriodicMetering or PeriodicFlexMetering

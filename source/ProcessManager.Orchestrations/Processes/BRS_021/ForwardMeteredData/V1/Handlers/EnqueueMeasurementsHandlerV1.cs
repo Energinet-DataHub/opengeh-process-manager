@@ -74,12 +74,20 @@ public class EnqueueMeasurementsHandlerV1(
             .GetAsync(sendMeasurementsInstanceId)
             .ConfigureAwait(false);
 
-        // If the orchestration instance is terminated, do nothing (idempotency/retry check).
+        // If the instance is terminated, do nothing (idempotency/retry check).
         if (instance.Lifecycle.State is OrchestrationInstanceLifecycleState.Terminated)
             return;
 
-        instance.MarkAsReceivedFromMeasurements(_clock.GetCurrentInstant());
-        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        // If the instance is already sent to enqueue actor messages, do nothing (idempotency/retry check).
+        if (instance.IsSentToEnqueueActorMessages)
+            return;
+
+        // Instance can already be marked as received from measurements, so we check that first (idempotency/retry check).
+        if (!instance.IsReceivedFromMeasurements)
+        {
+            instance.MarkAsReceivedFromMeasurements(_clock.GetCurrentInstant());
+            await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
+        }
 
         var inputStream = await _sendMeasurementsInstanceRepository.DownloadInputAsync(instance.FileStorageReference).ConfigureAwait(false);
         var input = await JsonSerializer.DeserializeAsync<ForwardMeteredDataInputV1>(inputStream.Stream).ConfigureAwait(false);
@@ -303,10 +311,6 @@ public class EnqueueMeasurementsHandlerV1(
         ForwardMeteredDataCustomStateV2 customState,
         IReadOnlyCollection<ReceiversWithMeteredDataV1> receivers)
     {
-        // If the step is already terminated (idempotency/retry check), do nothing.
-        if (instance.IsSentToEnqueueActorMessages)
-            return;
-
         // Ensure always using the same idempotency key. Messages will only be enqueued once per instance,
         // so we can use the instance id as the idempotency key.
         var idempotencyKey = instance.Id.Value;
@@ -335,5 +339,8 @@ public class EnqueueMeasurementsHandlerV1(
                 idempotencyKey: idempotencyKey,
                 data: data)
             .ConfigureAwait(false);
+
+        instance.MarkAsSentToEnqueueActorMessages(_clock.GetCurrentInstant());
+        await _sendMeasurementsInstanceRepository.UnitOfWork.CommitAsync().ConfigureAwait(false);
     }
 }

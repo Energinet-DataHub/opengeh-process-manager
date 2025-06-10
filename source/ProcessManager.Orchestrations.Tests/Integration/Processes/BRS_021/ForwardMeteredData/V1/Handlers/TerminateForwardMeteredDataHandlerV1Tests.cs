@@ -14,15 +14,12 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Energinet.DataHub.ProcessManager.Core.Application.FileStorage;
-using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Core.Domain.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Database;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.FileStorage;
 using Energinet.DataHub.ProcessManager.Core.Infrastructure.Orchestration;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.FeatureManagement;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Handlers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
@@ -108,7 +105,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_RunningOrchestrationInstance_When_HandleAsync_Then_OrchestrationInstanceIsTerminated()
+    public async Task Given_RunningInstance_When_HandleAsync_Then_InstanceIsTerminated()
     {
         // Arrange
         var (instance, inputStream) = await CreateRunningSendMeasurementsInstanceAsync();
@@ -141,7 +138,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_TerminatedOrchestrationInstance_When_HandleAsync_Then_NothingHappens()
+    public async Task Given_TerminatedInstance_When_HandleAsync_Then_NothingHappens()
     {
         // Arrange
         var (instance, inputStream) = await CreateTerminatedSendMeasurementsInstanceAsync();
@@ -163,12 +160,12 @@ public class TerminateForwardMeteredDataHandlerV1Tests
         var actualInstance = await assertionDbContext.SendMeasurementsInstances
             .SingleAsync(oi => oi.Id == instance.Id);
 
-        // - The orchestration instance should not be changed.
+        // - The instance should not be changed.
         Assert.Equivalent(instance, actualInstance);
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceStuckAtTerminating_When_HandleAsync_Then_InstanceIsTerminated()
+    public async Task Given_InstanceStuckAtTerminating_When_HandleAsync_Then_InstanceIsTerminated()
     {
         // Arrange
         var (instance, inputStream) = await CreateRunningSendMeasurementsInstanceAsync();
@@ -193,7 +190,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
         var actualInstance = await assertionDbContext.SendMeasurementsInstances
             .SingleAsync(oi => oi.Id == instance.Id);
 
-        // - OrchestrationInstance should be terminated with success.
+        // - SendMeasurementsInstance should be terminated with success.
         Assert.Multiple(
             () => Assert.Equal(OrchestrationInstanceLifecycleState.Terminated, actualInstance.Lifecycle.State),
             () => Assert.Equal(OrchestrationInstanceTerminationState.Succeeded, actualInstance.Lifecycle.TerminationState),
@@ -201,7 +198,7 @@ public class TerminateForwardMeteredDataHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_OrchestrationInstanceDoesntExist_When_HandleAsync_Then_ThrowsException()
+    public async Task Given_InstanceDoesntExist_When_HandleAsync_Then_ThrowsException()
     {
         // Act
         var act = () => Sut.HandleAsync(Guid.NewGuid());

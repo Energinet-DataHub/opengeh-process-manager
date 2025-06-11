@@ -16,14 +16,12 @@ using Azure.Messaging.EventHubs;
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.Core.TestCommon.Xunit.Attributes;
 using Energinet.DataHub.Core.TestCommon.Xunit.Orderers;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Extensions;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.Measurements.Contracts;
 using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures;
-using Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;
 using Google.Protobuf;
 using NodaTime;
 using NodaTime.Text;
@@ -137,16 +135,17 @@ public class SendMeasurementsScenario
 
         _fixture.ScenarioState.Instance = instance;
 
-        if (instance?.ValidationErrors?.Length > 0)
+        var hasValidationErrors = !string.IsNullOrEmpty(instance?.ValidationErrors);
+        if (hasValidationErrors)
         {
-            _fixture.Logger.WriteLine($"Business validation errors: {instance.ValidationErrors}.");
+            _fixture.Logger.WriteLine($"Business validation errors: {instance?.ValidationErrors}.");
             _fixture.ScenarioState.BusinessValidationFailed = true;
         }
 
         Assert.Multiple(
             () => Assert.True(success, $"Business validation step should be terminated."),
             () => Assert.NotNull(instance?.BusinessValidationSucceededAt),
-            () => Assert.Null(instance?.ValidationErrors));
+            () => Assert.False(hasValidationErrors, $"Shouldn't have any validation errors. Validation errors: {instance?.ValidationErrors}"));
     }
 
     [SubsystemFact]

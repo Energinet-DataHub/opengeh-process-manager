@@ -109,7 +109,7 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             ProductNumber: "123",                               // Elmark data?
             ActorNumber: ActorNumber.Create(input.ActorNumber),
             ActorRole: ActorRole.FromName(input.ActorRole),
-            MeasureUnit: MeasurementUnit.Kilowatt,              // Elmark data
+            MeasureUnit: MeasurementUnit.KilowattHour,          // Elmark data
             AggregatedMeasurements: aggregatedMeasurements,
             GridAreaCode: "804");
     }

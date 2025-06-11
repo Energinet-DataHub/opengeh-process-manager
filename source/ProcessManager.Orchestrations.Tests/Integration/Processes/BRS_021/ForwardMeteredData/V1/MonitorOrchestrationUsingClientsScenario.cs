@@ -154,7 +154,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForSendMeasurementsInstanceStepAsync(
                 forwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.ForwardToMeasurements);
 
         isWaitingForMeasurementsNotify.Should()
             .BeTrue("because the instance should wait for a notify event from Measurements");
@@ -272,7 +272,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForSendMeasurementsInstanceStepAsync(
                 idempotencyKey: forwardCommand.IdempotencyKey,
-                stepSequence: OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.ForwardToMeasurements);
 
         isWaitingForMeasurementsNotify.Should()
             .BeTrue("because the instance should wait for a notify event from Measurements");
@@ -384,7 +384,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForSendMeasurementsInstanceStepAsync(
                 forwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.ForwardToMeasurements);
 
         isWaitingForMeasurementsNotify.Should()
             .BeTrue("because the instance should wait for a notify event from Measurements");
@@ -492,7 +492,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var (isWaitingForNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
             .WaitForSendMeasurementsInstanceStepAsync(
                 invalidForwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.EnqueueActorMessages);
 
         isWaitingForNotify.Should()
             .BeTrue("because the instance should wait for a EnqueueActorMessagesCompleted notify event");

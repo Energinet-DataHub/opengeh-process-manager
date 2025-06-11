@@ -19,9 +19,9 @@ using Xunit.Sdk;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.TraitDiscoverers;
 
 /// <summary>
-/// This class discovers all the xUnit test classes that have applied
+/// This class discovers all the xUnit tests that have applied
 /// the <see cref="TestOrderAttribute"/> attribute. It then configures
-/// xUnit 'traits' based on the parameters given to the attribute.
+/// xUnit 'traits' based on the parameter given to the attribute.
 /// The trait is used by <see cref="TestOrderer"/> to order the tests.
 /// </summary>
 public class TestOrderDiscoverer : ITraitDiscoverer

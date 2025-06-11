@@ -70,7 +70,7 @@ internal class GetSendMeasurementsInstanceByIdempotencyKeyTrigger(
     {
         return new SendMeasurementsInstanceDto(
             Id: instance.Id.Value,
-            IdempotencyKey: Convert.ToBase64String(instance.IdempotencyKey),
+            IdempotencyKeyHash: Convert.ToBase64String(instance.IdempotencyKey),
             TransactionId: instance.TransactionId.Value,
             MeteringPointId: instance.MeteringPointId?.Value,
             MasterData: instance.MasterData.SerializedValue,

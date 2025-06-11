@@ -25,10 +25,12 @@ public static class ProcessManagerClientExtensions
 {
     private const int TimeLimitInSeconds = 60;
 
-    private const int BusinessValidationStep = 1;
-    private const int ForwardToMeasurementsStep = 2;
-    private const int FindReceiversStep = 3;
-    private const int EnqueueActorMessagesStep = 4;
+    public enum SendMeasurementsInstanceStep
+    {
+        BusinessValidation,
+        ForwardToMeasurements,
+        EnqueueActorMessages,
+    }
 
     /// <summary>
     /// Wait for an orchestration instance, resolving true/false by using the given <paramref name="comparer"/> function.
@@ -202,7 +204,7 @@ public static class ProcessManagerClientExtensions
     /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
     /// </summary>
     /// <param name="client"></param>
-    /// <param name="idempotencyKey">The idempotency key of the Send Measurements instance, used to find the correct instance.</param>
+    /// <param name="idempotencyKey">The idempotency key used to find the correct instance.</param>
     /// <param name="mustBeTerminated">If true then the instance must be terminated.</param>
     public static async Task<(bool Success, SendMeasurementsInstanceDto? Instance)> WaitForSendMeasurementsInstanceAsync(
         this IProcessManagerClient client,
@@ -239,13 +241,13 @@ public static class ProcessManagerClientExtensions
     /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
     /// </summary>
     /// <param name="client"></param>
-    /// <param name="idempotencyKey">The idempotency key of the Send Measurements instance, used to find the correct instance.</param>
-    /// <param name="stepSequence">The sequence number of the step that should be in the <see cref="StepInstanceLifecycleState.Running"/> state.</param>
+    /// <param name="idempotencyKey">The idempotency key used to find the correct instance.</param>
+    /// <param name="step">The step that should be running (or successful).</param>
     /// <param name="stepMustBeSuccessful">If true then the step must be completed successfully, else the step must be running.</param>
     public static async Task<(bool Success, SendMeasurementsInstanceDto? Instance)> WaitForSendMeasurementsInstanceStepAsync(
         this IProcessManagerClient client,
         string idempotencyKey,
-        int stepSequence,
+        SendMeasurementsInstanceStep step,
         bool stepMustBeSuccessful = false)
     {
         SendMeasurementsInstanceDto? instance = null;
@@ -265,25 +267,21 @@ public static class ProcessManagerClientExtensions
                 if (instance is null)
                     return false;
 
-                var result = stepMustBeSuccessful
-                    ? stepSequence switch
+                return stepMustBeSuccessful
+                    ? step switch
                     {
-                        BusinessValidationStep => instance.BusinessValidationSucceededAt is not null,
-                        FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
-                        ForwardToMeasurementsStep => instance.ReceivedFromMeasurementsAt is not null,
-                        EnqueueActorMessagesStep => instance.ReceivedFromEnqueueActorMessagesAt is not null,
-                        _ => throw new ArgumentOutOfRangeException(nameof(stepSequence), $"Unknown step sequence: {stepSequence}."),
+                        SendMeasurementsInstanceStep.BusinessValidation => instance.BusinessValidationSucceededAt is not null,
+                        SendMeasurementsInstanceStep.ForwardToMeasurements => instance.ReceivedFromMeasurementsAt is not null,
+                        SendMeasurementsInstanceStep.EnqueueActorMessages => instance.ReceivedFromEnqueueActorMessagesAt is not null,
+                        _ => throw new ArgumentOutOfRangeException(nameof(step), $"Unknown step: {step}."),
                     }
-                    : stepSequence switch
+                    : step switch
                     {
-                        BusinessValidationStep => true,
-                        FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
-                        ForwardToMeasurementsStep => instance.SentToMeasurementsAt is not null,
-                        EnqueueActorMessagesStep => instance.SentToEnqueueActorMessagesAt is not null,
-                        _ => throw new ArgumentOutOfRangeException(nameof(stepSequence), $"Unknown step sequence: {stepSequence}."),
+                        SendMeasurementsInstanceStep.BusinessValidation => true,
+                        SendMeasurementsInstanceStep.ForwardToMeasurements => instance.SentToMeasurementsAt is not null,
+                        SendMeasurementsInstanceStep.EnqueueActorMessages => instance.SentToEnqueueActorMessagesAt is not null,
+                        _ => throw new ArgumentOutOfRangeException(nameof(step), $"Unknown step: {step}."),
                     };
-
-                return result;
             },
             timeLimit: TimeSpan.FromSeconds(TimeLimitInSeconds),
             delay: TimeSpan.FromSeconds(1));

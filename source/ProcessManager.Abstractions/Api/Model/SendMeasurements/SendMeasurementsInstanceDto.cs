@@ -21,7 +21,7 @@ namespace Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasuremen
 /// </summary>
 public record SendMeasurementsInstanceDto(
     Guid Id,
-    string IdempotencyKey,
+    string IdempotencyKeyHash,
     string TransactionId,
     string? MeteringPointId,
     string? MasterData,

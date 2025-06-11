@@ -135,7 +135,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidForwardMeteredDataInputV1_When_Started_Then_InstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
@@ -200,7 +200,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         instanceWasTerminated.Should().BeTrue(
             "because the instance should be terminated within given wait time");
 
-        // Orchestration instance and all steps should be Succeeded
+        // Instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
         terminatedInstance!.TerminatedAt.Should()
             .NotBeNull();
@@ -242,12 +242,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         terminatedInstance.FailedAt.Should().BeNull();
     }
 
-    // Default order is 0, so this will run after the other tests in this class, to ensure as few app restarts
-    // (because of feature flag changes) as possible.
+    /// <remarks>
+    /// Default order is 0, so this test will run after the other tests in this class, to ensure as few app restarts
+    /// (because of feature flag changes) as possible.
+    /// </remarks>
     [Fact]
     [TestOrder(1)]
     public async Task
-        Given_MeteringPointWithAdditionalRecipients_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_MeteringPointWithAdditionalRecipients_When_Started_Then_InstanceTerminatesWithSuccess()
     {
         _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([
             new($"{FeatureFlagNames.SectionName}__{FeatureFlagNames.EnableAdditionalRecipients}", true.ToString()),
@@ -273,7 +275,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 stepSequence: OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
 
         isWaitingForMeasurementsNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
+            .BeTrue("because the instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
@@ -314,7 +316,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 mustBeTerminated: true);
 
         instanceWasTerminated.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+            "because the instance should be terminated within given wait time");
 
         // Instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
@@ -362,7 +364,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidForwardMeteredDataInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_InstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
@@ -426,9 +428,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 mustBeTerminated: true);
 
         wasTerminated.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+            "because the instance should be terminated within given wait time");
 
-        // Orchestration instance and all steps should be Succeeded
+        // Instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
         terminatedInstance!.TerminatedAt.Should()
             .NotBeNull();
@@ -470,7 +472,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_InstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
         // Given
         SetupElectricityMarketWireMocking();
@@ -493,7 +495,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
 
         isWaitingForNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
+            .BeTrue("because the instance should wait for a EnqueueActorMessagesCompleted notify event");
 
         // Verify an enqueue actor messages event is sent on the service bus
         var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When(
@@ -530,9 +532,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 mustBeTerminated: true);
 
         wasTerminated.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+            "because the instance should be terminated within given wait time");
 
-        // Orchestration instance and validation steps should be Failed
+        // Instance and validation step should be Failed
         using var assertionScope = new AssertionScope();
         terminatedInstance!.TerminatedAt.Should()
             .NotBeNull();
@@ -564,7 +566,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     /// out-of-box functionality and we expect it to work.
     /// </summary>
     [Fact]
-    public async Task Given_InvalidNotifyEvent_When_NotifyOrchestrationInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
+    public async Task Given_InvalidNotifyEvent_When_NotifyInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
     {
         // Given
         var invalidNotifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()

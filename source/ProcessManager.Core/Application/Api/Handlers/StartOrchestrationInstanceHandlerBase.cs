@@ -23,13 +23,13 @@ public abstract class StartOrchestrationInstanceHandlerBase<TInputParameterDto>(
     ILogger logger) : IStartOrchestrationInstanceHandler
     where TInputParameterDto : class, IInputParameterDto
 {
-    private readonly ILogger _logger = logger;
+    protected ILogger Logger => logger;
 
     public abstract bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance);
 
     public async Task HandleAsync(StartOrchestrationInstanceV1 startOrchestrationInstance, IdempotencyKey idempotencyKey)
     {
-        using var startOrchestrationLoggerScope = _logger.BeginScope(new
+        using var startOrchestrationLoggerScope = Logger.BeginScope(new
         {
             StartOrchestration = new
             {

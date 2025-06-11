@@ -16,6 +16,7 @@
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ElectricityMarketViewsExtensions.cs">
       <Link>Fixtures\Extensions\ElectricityMarketViewsExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\Shared\Tests\Fixtures\Extensions\LoggerMockExtensions.cs" Link="Fixtures\Extensions\LoggerMockExtensions.cs" />
     <Compile Include="..\Shared\Tests\Fixtures\Extensions\ProcessManagerClientExtensions.cs">
       <Link>Fixtures\Extensions\ProcessManagerClientExtensions.cs</Link>
     </Compile>

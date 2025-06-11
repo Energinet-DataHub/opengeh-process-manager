@@ -479,7 +479,7 @@ public class StartForwardMeteredDataHandlerV1(
         SendMeasurementsInstance instance,
         ForwardMeteredDataInputV1 input)
     {
-        // If already validation has already been performed,we return the existing validation errors (if any).
+        // If validation has already been performed, we return the existing validation errors (if any).
         if (instance.IsBusinessValidationPerformed)
         {
             return instance.ValidationErrors.IsEmpty
@@ -521,6 +521,16 @@ public class StartForwardMeteredDataHandlerV1(
                         .Select(mpmd => mpmd.ToMeteringPointMasterData())
                         .ToList()))
             .ConfigureAwait(false);
+
+        if (input.DataSource == ForwardMeteredDataInputV1.DataSourceEnum.MigrationSubsystem
+            && validationErrors.Any())
+        {
+            // Clear validation errors, and behave as if business validation was a success
+            validationErrors = [];
+            Logger.LogWarning(
+                "Cleared validation errors. DataSource = {DataSource}",
+                input.DataSource);
+        }
 
         if (validationErrors.Any())
             instance.ValidationErrors.SetFromInstance(validationErrors);

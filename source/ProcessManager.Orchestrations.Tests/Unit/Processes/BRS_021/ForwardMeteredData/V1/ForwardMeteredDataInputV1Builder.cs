@@ -36,6 +36,7 @@ public class ForwardMeteredDataInputV1Builder
     private string _startDateTime = "2024-12-31T23:00Z"; // Seconds are optional, so we test with and without them.
     private string? _endDateTime = "2025-01-31T23:00:00Z"; // Seconds are optional, so we test with and without them.
     private string _gridAccessProviderNumber = ActorNumber;
+    private ForwardMeteredDataInputV1.DataSourceEnum _dataSource = ForwardMeteredDataInputV1.DataSourceEnum.ActorSystem;
 
     private IReadOnlyCollection<ForwardMeteredDataInputV1.MeteredData> _meteredData =
     [
@@ -143,6 +144,12 @@ public class ForwardMeteredDataInputV1Builder
         return this;
     }
 
+    public ForwardMeteredDataInputV1Builder WithDataSource(ForwardMeteredDataInputV1.DataSourceEnum dataSource)
+    {
+        _dataSource = dataSource;
+        return this;
+    }
+
     public ForwardMeteredDataInputV1 Build()
     {
         return new ForwardMeteredDataInputV1(
@@ -160,6 +167,7 @@ public class ForwardMeteredDataInputV1Builder
             StartDateTime: _startDateTime,
             EndDateTime: _endDateTime,
             GridAccessProviderNumber: _gridAccessProviderNumber,
-            MeteredDataList: _meteredData);
+            MeteredDataList: _meteredData,
+            DataSource: _dataSource);
     }
 }

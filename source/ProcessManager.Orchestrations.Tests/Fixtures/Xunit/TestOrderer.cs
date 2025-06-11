@@ -29,13 +29,13 @@ public class TestOrderer : ITestCaseOrderer
     public const string AssemblyName = "Energinet.DataHub.ProcessManager.Orchestrations.Tests";
 
     public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases)
-        where TTestCase : notnull, ITestCase
+        where TTestCase : ITestCase
     {
         return testCases.OrderBy(GetOrderTrait).ToList();
     }
 
     private static int GetOrderTrait<TTestCase>(TTestCase testCase)
-        where TTestCase : notnull, ITestCase
+        where TTestCase : ITestCase
     {
         testCase.Traits.TryGetValue(TestOrderDiscoverer.TraitName, out var orderTrait);
 

@@ -17,9 +17,9 @@ using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidatio
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
 
-public record RequestYearlyMeasurementsRejectV1(
+public record RequestMeasurementsRejectV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
     ActorNumber ActorNumber,

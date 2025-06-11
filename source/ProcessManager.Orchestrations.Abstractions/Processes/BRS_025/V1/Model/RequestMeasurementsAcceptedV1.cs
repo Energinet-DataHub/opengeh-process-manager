@@ -13,17 +13,29 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
 
-public record RequestYearlyMeasurementsRejectV1(
+public record RequestMeasurementsAcceptedV1(
     string OriginalActorMessageId,
     string OriginalTransactionId,
+    string MeteringPointId,
+    MeteringPointType MeteringPointType,
     ActorNumber ActorNumber,
     ActorRole ActorRole,
-    string MeteringPointId,
-    List<ValidationErrorDto> ValidationErrors)
-        : IEnqueueRejectedDataDto;
+    IReadOnlyCollection<Measurement> Measurements)
+    : IEnqueueAcceptedDataDto;
+
+public record Measurement(
+    Resolution Resolution,
+    MeasurementUnit MeasureUnit,
+    DateTimeOffset StartDateTime,
+    DateTimeOffset EndDateTime,
+    IReadOnlyCollection<MeasurementPoint> MeasurementPoints);
+
+public record MeasurementPoint(
+    int Position,
+    decimal? EnergyQuantity,
+    Quality QuantityQuality);

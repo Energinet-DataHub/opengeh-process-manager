@@ -13,15 +13,17 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
 
-public record RequestYearlyMeasurementsInputV1(
-    string ActorMessageId,
-    string TransactionId,
-    string ActorNumber,
-    string ActorRole,
-    string ReceivedAt,
-    string MeteringPointId)
-    : IInputParameterDto, IBusinessValidatedDto;
+public record RequestMeasurementsNotifyEventV1(
+    string OrchestrationInstanceId)
+    : NotifyOrchestrationInstanceEvent(
+        OrchestrationInstanceId,
+        EventName: OrchestrationInstanceEventName)
+{
+    /// <summary>
+    /// The event name which the orchestration instance expects (is waiting for).
+    /// </summary>
+    public const string OrchestrationInstanceEventName = "EnqueueActorMessagesCompleted";
+}

@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.EnqueueActorMessages;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
 
-public record RequestYearlyMeasurementsRejectV1(
-    string OriginalActorMessageId,
-    string OriginalTransactionId,
-    ActorNumber ActorNumber,
-    ActorRole ActorRole,
+public record RequestMeasurementsInputV1(
+    string ActorMessageId,
+    string TransactionId,
+    string ActorNumber,
+    string ActorRole,
     string MeteringPointId,
-    List<ValidationErrorDto> ValidationErrors)
-        : IEnqueueRejectedDataDto;
+    string StartDateTime,
+    string? EndDateTime)
+    : IInputParameterDto, IBusinessValidatedDto;

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_024.V1;
@@ -27,7 +26,6 @@ public class RequestYearlyMeasurementsInputV1Builder
     private const string ReceivedAt = "2024-12-31T23:00Z";
 
     private readonly string _actorRole = ActorRole.GridAccessProvider.Name;
-    private readonly string _businessReason = BusinessReason.PeriodicMetering.Name;
 
     public RequestYearlyMeasurementsInputV1 Build()
     {
@@ -36,7 +34,6 @@ public class RequestYearlyMeasurementsInputV1Builder
             TransactionId: TransactionId,
             ActorNumber: ActorNumber,
             ActorRole: _actorRole,
-            BusinessReason: _businessReason,
             ReceivedAt: ReceivedAt,
             MeteringPointId: MeteringPointId);
     }

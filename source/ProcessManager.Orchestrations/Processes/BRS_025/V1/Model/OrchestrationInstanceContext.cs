@@ -12,16 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Options;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Model;
 
-public record RequestYearlyMeasurementsInputV1(
-    string ActorMessageId,
-    string TransactionId,
-    string ActorNumber,
-    string ActorRole,
-    string ReceivedAt,
-    string MeteringPointId)
-    : IInputParameterDto, IBusinessValidatedDto;
+public record OrchestrationInstanceContext(
+    OrchestrationInstanceId Id,
+    OrchestrationOptions_Brs_025_V1 Options);

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Azure.Messaging.ServiceBus;
 using Energinet.DataHub.Measurements.Abstractions.Api.Models;
 using Energinet.DataHub.Measurements.Abstractions.Api.Queries;
 using Energinet.DataHub.Measurements.Client;
@@ -106,12 +105,9 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             OriginalTransactionId: input.TransactionId,
             MeteringPointId: input.MeteringPointId,
             MeteringPointType: MeteringPointType.Consumption,   // Elmark data
-            ProductNumber: "123",                               // Elmark data?
             ActorNumber: ActorNumber.Create(input.ActorNumber),
             ActorRole: ActorRole.FromName(input.ActorRole),
-            MeasureUnit: MeasurementUnit.KilowattHour,          // Elmark data
-            AggregatedMeasurements: aggregatedMeasurements,
-            GridAreaCode: "804");
+            AggregatedMeasurements: aggregatedMeasurements);
     }
 
     private AggregatedMeasurement CreateAggregatedMeasurement(PointAggregationGroup grouping)

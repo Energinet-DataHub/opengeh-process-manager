@@ -23,12 +23,9 @@ public record RequestYearlyMeasurementsAcceptedV1(
     string OriginalTransactionId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
-    string ProductNumber,
     ActorNumber ActorNumber,
     ActorRole ActorRole,
-    MeasurementUnit MeasureUnit,
-    IReadOnlyCollection<AggregatedMeasurement> AggregatedMeasurements,
-    string GridAreaCode)
+    IReadOnlyCollection<AggregatedMeasurement> AggregatedMeasurements)
     : IEnqueueAcceptedDataDto;
 
 public record AggregatedMeasurement(

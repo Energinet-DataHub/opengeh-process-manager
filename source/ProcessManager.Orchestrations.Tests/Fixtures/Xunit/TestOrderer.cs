@@ -40,13 +40,4 @@ public class TestOrderer : ITestCaseOrderer
         var orderTraitValue = int.Parse(orderTrait.First());
         return orderTraitValue;
     }
-
-    // private static int GetTestMethodOrder<TTestCase>(TTestCase testCase)
-    //     where TTestCase : notnull, ITestCase
-    // {
-    //     return testCase.TestMethod.Method
-    //         .GetCustomAttributes(typeof(OrderAttribute).AssemblyQualifiedName!)
-    //         .FirstOrDefault()
-    //         ?.GetNamedArgument<int>(nameof(OrderAttribute.Number)) ?? 0;
-    // }
 }

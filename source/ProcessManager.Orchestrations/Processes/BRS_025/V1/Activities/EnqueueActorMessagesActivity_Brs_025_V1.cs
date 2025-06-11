@@ -144,9 +144,7 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
             if (previousPoint != null)
             {
                 var previousPointEndTime = previousPoint.RegistrationTime + GetResolutionDuration(previousPoint.Resolution);
-                if (measurementPointDto.RegistrationTime != previousPointEndTime
-                    || previousPoint.Unit != measurementPointDto.Unit
-                    || previousPoint.Resolution != measurementPointDto.Resolution)
+                if (IsNewGrouping(measurementPointDto, previousPoint, previousPointEndTime))
                 {
                     // Create a new Measurement with the current group of points
                     measurements.Add(new Measurement(
@@ -185,6 +183,16 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
         }
 
         return measurements;
+    }
+
+    private bool IsNewGrouping(
+        MeasurementPointDto measurementPointDto,
+        MeasurementPointDto previousPoint,
+        DateTimeOffset previousPointEndTime)
+    {
+        return measurementPointDto.RegistrationTime != previousPointEndTime
+               || previousPoint.Unit != measurementPointDto.Unit
+               || previousPoint.Resolution != measurementPointDto.Resolution;
     }
 
     private async Task<IReadOnlyCollection<MeasurementPointDto>> GetMeasurementPointsFromMeasurements(

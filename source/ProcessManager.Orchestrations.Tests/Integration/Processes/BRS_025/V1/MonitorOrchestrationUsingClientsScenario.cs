@@ -15,7 +15,6 @@
 using Energinet.DataHub.Core.FunctionApp.TestCommon.ServiceBus.ListenerMock;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
-using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Orchestration.Steps;
@@ -153,14 +152,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     private RequestMeasurementsCommandV1 GivenCommand(
         string meteringPointId = "123456789012345678")
     {
-        var energySupplierNumber = ActorNumber.Create("1234567891234");
-        var energySupplierRole = ActorRole.EnergySupplier;
-
         var input = new RequestMeasurementsInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
-            ActorNumber: energySupplierNumber.Value,
-            ActorRole: energySupplierRole.Name,
+            ActorNumber: EnergySupplier,
+            ActorRole: ActorRole.EnergySupplier.Name,
             StartDateTime: "2025-01-07T22:00:00Z",
             EndDateTime: "2025-04-07T22:00:00Z",
             MeteringPointId: meteringPointId);

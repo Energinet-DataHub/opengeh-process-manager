@@ -397,6 +397,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs024SubscriptionName)}",
             startTopicResources.Brs024Subscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
+            $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs025SubscriptionName)}",
+            startTopicResources.Brs025Subscription.SubscriptionName);
+        appHostSettings.ProcessEnvironmentVariables.Add(
             $"{ProcessManagerStartTopicOptions.SectionName}__{nameof(ProcessManagerStartTopicOptions.Brs026SubscriptionName)}",
             startTopicResources.Brs026Subscription.SubscriptionName);
         appHostSettings.ProcessEnvironmentVariables.Add(
@@ -708,12 +711,14 @@ public class OrchestrationsAppManager : IAsyncDisposable
         SubscriptionProperties Brs021ForwardMeteredDataSubscription,
         SubscriptionProperties Brs023027Subscription,
         SubscriptionProperties Brs024Subscription,
+        SubscriptionProperties Brs025Subscription,
         SubscriptionProperties Brs026Subscription,
         SubscriptionProperties Brs028Subscription)
     {
         private const string Brs021ForwardMeteredDataSubscriptionName = "brs-021-forward-metered-data";
         private const string Brs023027SubscriptionName = "brs-023-027";
         private const string Brs024SubscriptionName = "brs-024";
+        private const string Brs025SubscriptionName = "brs-025";
         private const string Brs026SubscriptionName = "brs-026";
         private const string Brs028SubscriptionName = "brs-028";
 
@@ -738,6 +743,8 @@ public class OrchestrationsAppManager : IAsyncDisposable
                     .AddSubjectFilter(Brs_023_027.Name)
                 .AddSubscription(Brs024SubscriptionName)
                     .AddSubjectFilter(Brs_024.Name)
+                .AddSubscription(Brs025SubscriptionName)
+                    .AddSubjectFilter(Brs_025.Name)
                 .AddSubscription(Brs026SubscriptionName)
                     .AddSubjectFilter(Brs_026.Name)
                 .AddSubscription(Brs028SubscriptionName)
@@ -763,6 +770,9 @@ public class OrchestrationsAppManager : IAsyncDisposable
             var brs024Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs024SubscriptionName));
 
+            var brs025Subscription = topic.Subscriptions
+                .Single(x => x.SubscriptionName.Equals(Brs025SubscriptionName));
+
             var brs026Subscription = topic.Subscriptions
                 .Single(x => x.SubscriptionName.Equals(Brs026SubscriptionName));
 
@@ -774,6 +784,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
                 Brs021ForwardMeteredDataSubscription: brs021ForwardMeteredDataSubscription,
                 Brs023027Subscription: brs023027Subscription,
                 Brs024Subscription: brs024Subscription,
+                Brs025Subscription: brs025Subscription,
                 Brs026Subscription: brs026Subscription,
                 Brs028Subscription: brs028Subscription);
         }

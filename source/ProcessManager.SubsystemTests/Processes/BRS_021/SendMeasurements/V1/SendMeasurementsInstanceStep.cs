@@ -1,4 +1,4 @@
-﻿// Copyright 2020 Energinet DataHub A/S
+// Copyright 2020 Energinet DataHub A/S
 //
 // Licensed under the Apache License, Version 2.0 (the "License2");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
-using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_021.ForwardMeteredData.V1.Model;
-
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Processes.BRS_021.SendMeasurements.V1;
 
-public record SendMeasurementsScenarioState(
-    ForwardMeteredDataCommandV1 Command)
+public enum SendMeasurementsInstanceStep
 {
-    public SendMeasurementsInstanceDto? Instance { get; set; }
-
-    public bool BusinessValidationFailed { get; set; } = false;
+    BusinessValidation,
+    ForwardToMeasurements,
+    EnqueueActorMessages,
 }

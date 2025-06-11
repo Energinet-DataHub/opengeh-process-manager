@@ -348,12 +348,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.AppConfigurationEndpoint);
         appHostSettings.ProcessEnvironmentVariables.Add(
             AppConfigurationManager.DisableProviderSettingName,
-            "true");
+            true.ToString());
 
         // Default feature flag values.
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}",
-            "false");
+            $"{FeatureFlagNames.SectionName}__{FeatureFlagNames.EnableAdditionalRecipients}",
+            false.ToString());
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{AdditionalRecipientsOptions.SectionName}__{nameof(AdditionalRecipientsOptions.Environment)}",
             "Development");

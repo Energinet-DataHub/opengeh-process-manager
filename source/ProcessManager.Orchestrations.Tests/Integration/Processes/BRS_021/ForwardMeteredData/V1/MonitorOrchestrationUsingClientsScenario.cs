@@ -35,6 +35,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -52,11 +53,8 @@ using Xunit.Abstractions;
 using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
-using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
-using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
-using StepInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -65,6 +63,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// forward metered data flow
 /// </summary>
 [ParallelWorkflow(WorkflowBucket.Bucket03)]
+[TestCaseOrderer(ordererTypeName: TestOrderer.TypeName, ordererAssemblyName: TestOrderer.AssemblyName)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
@@ -119,7 +118,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
         _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.ResetMessageHandlersAndReceivedMessages();
         _fixture.EventHubListener.Reset();
-        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "false")]);
+        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([
+                new($"{FeatureFlagNames.SectionName}__{FeatureFlagNames.EnableAdditionalRecipients}", false.ToString()),
+        ]);
 
         return Task.CompletedTask;
     }
@@ -241,11 +242,16 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         terminatedInstance.FailedAt.Should().BeNull();
     }
 
+    // Default order is 0, so this will run after the other tests in this class, to ensure as few app restarts
+    // (because of feature flag changes) as possible.
     [Fact]
+    [TestOrder(1)]
     public async Task
         Given_MeteringPointWithAdditionalRecipients_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
     {
-        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "true")]);
+        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([
+            new($"{FeatureFlagNames.SectionName}__{FeatureFlagNames.EnableAdditionalRecipients}", true.ToString()),
+        ]);
 
         // Arrange
         SetupElectricityMarketWireMocking(MeteringPointIdWithAdditionalRecipients);

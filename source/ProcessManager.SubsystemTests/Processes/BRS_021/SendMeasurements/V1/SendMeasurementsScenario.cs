@@ -135,7 +135,7 @@ public class SendMeasurementsScenario
 
         _fixture.ScenarioState.Instance = instance;
 
-        var hasValidationErrors = !string.IsNullOrEmpty(instance?.ValidationErrors);
+        var hasValidationErrors = instance?.ValidationErrors?.Length > 0;
         if (hasValidationErrors)
         {
             _fixture.Logger.WriteLine($"Business validation errors: {instance?.ValidationErrors}.");

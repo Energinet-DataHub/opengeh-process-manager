@@ -16,28 +16,28 @@ using Energinet.DataHub.ProcessManager.Abstractions.Contracts;
 using Energinet.DataHub.ProcessManager.Core.Application.Api.Handlers;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1;
 
-public class RequestYearlyMeasurementsHandlerV1(
-    ILogger<RequestYearlyMeasurementsHandlerV1> logger,
+public class RequestMeasurementsHandlerV1(
+    ILogger<RequestMeasurementsHandlerV1> logger,
     IStartOrchestrationInstanceMessageCommands commands)
-    : StartOrchestrationInstanceHandlerBase<RequestYearlyMeasurementsInputV1>(logger)
+    : StartOrchestrationInstanceHandlerBase<RequestMeasurementsInputV1>(logger)
 {
     private readonly IStartOrchestrationInstanceMessageCommands _commands = commands;
 
     public override bool CanHandle(StartOrchestrationInstanceV1 startOrchestrationInstance) =>
-        startOrchestrationInstance.OrchestrationName == Brs_024.V1.Name &&
-        startOrchestrationInstance.OrchestrationVersion == Brs_024.V1.Version;
+        startOrchestrationInstance.OrchestrationName == Brs_025.V1.Name &&
+        startOrchestrationInstance.OrchestrationVersion == Brs_025.V1.Version;
 
     protected override async Task StartOrchestrationInstanceAsync(
         ActorIdentity actorIdentity,
-        RequestYearlyMeasurementsInputV1 input,
+        RequestMeasurementsInputV1 input,
         string idempotencyKey,
         string actorMessageId,
         string transactionId,
@@ -45,7 +45,7 @@ public class RequestYearlyMeasurementsHandlerV1(
     {
         await _commands.StartNewOrchestrationInstanceAsync(
                 actorIdentity,
-                Orchestration_Brs_024_V1.UniqueName.MapToDomain(),
+                Orchestration_Brs_025_V1.UniqueName.MapToDomain(),
                 input,
                 skipStepsBySequence: [],
                 new IdempotencyKey(idempotencyKey),

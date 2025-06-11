@@ -105,12 +105,9 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             OriginalTransactionId: input.TransactionId,
             MeteringPointId: input.MeteringPointId,
             MeteringPointType: MeteringPointType.Consumption,   // Elmark data
-            ProductNumber: "123",                               // Elmark data?
-            ActorNumber: ActorNumber.Create(input.ActorNumber),
-            ActorRole: ActorRole.FromName(input.ActorRole),
-            MeasureUnit: MeasurementUnit.KilowattHour,          // Elmark data
-            AggregatedMeasurements: aggregatedMeasurements,
-            GridAreaCode: "804");
+            ActorNumber: input.ActorNumber,
+            ActorRole: input.ActorRole,
+            AggregatedMeasurements: aggregatedMeasurements);
     }
 
     private AggregatedMeasurement CreateAggregatedMeasurement(PointAggregationGroup grouping)

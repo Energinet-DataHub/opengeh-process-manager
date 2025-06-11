@@ -241,15 +241,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     private RequestYearlyMeasurementsCommandV1 GivenCommand(
         string meteringPointId = "123456789012345678")
     {
-        const string energySupplierNumber = "1234567891234";
-        var energySupplierRole = ActorRole.EnergySupplier.Name;
+        var energySupplierNumber = ActorNumber.Create("1234567891234");
+        var energySupplierRole = ActorRole.EnergySupplier;
 
         var input = new RequestYearlyMeasurementsInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
             ActorNumber: energySupplierNumber,
             ActorRole: energySupplierRole,
-            BusinessReason: BusinessReason.PeriodicMetering.Name,
             ReceivedAt: "2024-04-07T22:00:00Z",
             MeteringPointId: meteringPointId);
 

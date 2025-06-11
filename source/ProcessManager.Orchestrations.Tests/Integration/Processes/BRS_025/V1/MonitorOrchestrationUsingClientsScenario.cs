@@ -37,7 +37,6 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
-    private const string MeteringPointId = "571313101700011887";
     private const string EnergySupplier = "1111111111111";
     private const string GridAccessProvider = "2222222222222";
     private const string NeighborGridAreaOwner1 = "3333333333331";
@@ -86,10 +85,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             from: now.PlusDays(-365),
             to: now)
 ;
-        SetupElectricityMarketWireMocking();
+        SetupElectricityMarketWireMocking(meteringPointId: "123456789012345678");
 
         // Step 1: Start new orchestration instance
-        var requestCommand = GivenCommand();
+        var requestCommand = GivenCommand(meteringPointId: "123456789012345678");
 
         await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
@@ -154,15 +153,14 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     private RequestMeasurementsCommandV1 GivenCommand(
         string meteringPointId = "123456789012345678")
     {
-        const string energySupplierNumber = "1234567891234";
-        var energySupplierRole = ActorRole.EnergySupplier.Name;
+        var energySupplierNumber = ActorNumber.Create("1234567891234");
+        var energySupplierRole = ActorRole.EnergySupplier;
 
         var input = new RequestMeasurementsInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
             ActorNumber: energySupplierNumber,
             ActorRole: energySupplierRole,
-            BusinessReason: BusinessReason.PeriodicMetering.Name,
             StartDateTime: "2025-01-07T22:00:00Z",
             EndDateTime: "2025-04-07T22:00:00Z",
             MeteringPointId: meteringPointId);
@@ -174,11 +172,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     }
 
     private void SetupElectricityMarketWireMocking(
-        ElectricityMarket.Integration.Models.MasterData.MeteringPointType? meteringPointType = null)
+        ElectricityMarket.Integration.Models.MasterData.MeteringPointType? meteringPointType = null,
+        string meteringPointId = "123456789012345678")
     {
         var meteringPointMasterData = new ElectricityMarket.Integration.Models.MasterData.MeteringPointMasterData
         {
-            Identification = new ElectricityMarketModels.MeteringPointIdentification(MeteringPointId),
+            Identification = new ElectricityMarketModels.MeteringPointIdentification(meteringPointId),
             ValidFrom = _validFrom,
             ValidTo = _validTo,
             GridAreaCode = new ElectricityMarket.Integration.Models.MasterData.GridAreaCode(GridArea),

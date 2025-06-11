@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
@@ -20,10 +21,9 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record RequestMeasurementsInputV1(
     string ActorMessageId,
     string TransactionId,
-    string ActorNumber,
-    string ActorRole,
+    ActorNumber ActorNumber,
+    ActorRole ActorRole,
     string MeteringPointId,
-    string BusinessReason,
     string StartDateTime,
     string? EndDateTime)
     : IInputParameterDto, IBusinessValidatedDto;

@@ -24,7 +24,6 @@ public record RequestMeasurementsRejectV1(
     string OriginalTransactionId,
     ActorNumber ActorNumber,
     ActorRole ActorRole,
-    BusinessReason BusinessReason,
     string MeteringPointId,
     List<ValidationErrorDto> ValidationErrors)
         : IEnqueueRejectedDataDto;

@@ -22,21 +22,19 @@ public class RequestYearlyMeasurementsInputV1Builder
 {
     private const string ActorMessageId = "MessageId";
     private const string TransactionId = "TransactionId";
-    private const string ActorNumber = "1234567890123";
     private const string MeteringPointId = "MeteringPointId";
     private const string ReceivedAt = "2024-12-31T23:00Z";
 
-    private readonly string _actorRole = ActorRole.GridAccessProvider.Name;
-    private readonly string _businessReason = BusinessReason.PeriodicMetering.Name;
+    private readonly ActorRole _actorRole = ActorRole.GridAccessProvider;
+    private readonly ActorNumber _actorNumber = ActorNumber.Create("1234567890123");
 
     public RequestYearlyMeasurementsInputV1 Build()
     {
         return new RequestYearlyMeasurementsInputV1(
             ActorMessageId: ActorMessageId,
             TransactionId: TransactionId,
-            ActorNumber: ActorNumber,
+            ActorNumber: _actorNumber,
             ActorRole: _actorRole,
-            BusinessReason: _businessReason,
             ReceivedAt: ReceivedAt,
             MeteringPointId: MeteringPointId);
     }

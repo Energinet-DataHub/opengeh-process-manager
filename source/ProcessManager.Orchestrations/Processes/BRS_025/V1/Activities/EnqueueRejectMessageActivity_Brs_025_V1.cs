@@ -57,9 +57,8 @@ public class EnqueueRejectMessageActivity_Brs_025_V1(
         var rejectedMessage = new RequestMeasurementsRejectV1(
             OriginalActorMessageId: requestInput.ActorMessageId,
             OriginalTransactionId: requestInput.TransactionId,
-            ActorNumber: ActorNumber.Create(requestInput.ActorNumber),
-            ActorRole: ActorRole.FromName(requestInput.ActorRole),
-            BusinessReason: BusinessReason.FromName(requestInput.BusinessReason),
+            ActorNumber: requestInput.ActorNumber,
+            ActorRole: requestInput.ActorRole,
             MeteringPointId: requestInput.MeteringPointId,
             ValidationErrors: input.ValidationErrors
                 .Select(e => new ValidationErrorDto(

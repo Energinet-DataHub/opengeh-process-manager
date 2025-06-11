@@ -23,11 +23,9 @@ public record RequestMeasurementsAcceptedV1(
     string OriginalTransactionId,
     string MeteringPointId,
     MeteringPointType MeteringPointType,
-    string ProductNumber,
     ActorNumber ActorNumber,
     ActorRole ActorRole,
-    IReadOnlyCollection<Measurement> Measurements,
-    string GridAreaCode)
+    IReadOnlyCollection<Measurement> Measurements)
     : IEnqueueAcceptedDataDto;
 
 public record Measurement(
@@ -40,4 +38,4 @@ public record Measurement(
 public record MeasurementPoint(
     int Position,
     decimal? EnergyQuantity,
-    Quality? QuantityQuality);
+    Quality QuantityQuality);

@@ -143,15 +143,17 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
         {
             if (previousPoint != null)
             {
-                var expectedTime = previousPoint.RegistrationTime + GetResolutionDuration(previousPoint.Resolution);
-                if (measurementPointDto.RegistrationTime != expectedTime)
+                var previousPointEndTime = previousPoint.RegistrationTime + GetResolutionDuration(previousPoint.Resolution);
+                if (measurementPointDto.RegistrationTime != previousPointEndTime
+                    || previousPoint.Unit != measurementPointDto.Unit
+                    || previousPoint.Resolution != measurementPointDto.Resolution)
                 {
                     // Create a new Measurement with the current group of points
                     measurements.Add(new Measurement(
                         Resolution: MapResolution(previousPoint.Resolution),
                         MeasureUnit: MapMeasureUnit(previousPoint.Unit),
                         StartDateTime: currentMeasurementStartedAt!.Value,
-                        EndDateTime: measurementPointDto.RegistrationTime, // The end time is the start time of the next point
+                        EndDateTime: previousPointEndTime,
                         MeasurementPoints: currentMeasurementPoints));
 
                     // Start a new group of points

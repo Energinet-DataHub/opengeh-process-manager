@@ -20,6 +20,10 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.A
 /// Apply attribute on xUnit test class for tests to specify in which
 /// order the tests should be executed. If the attribute is not applied, the order 0 is the default.
 /// </summary>
+/// <remarks>
+/// The <see cref="TestOrderer"/> test case orderer must be applied to the test for this attribute
+/// to be used.
+/// </remarks>
 [TraitDiscoverer(
     typeName: "Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.TraitDiscoverers.TestOrderDiscoverer",
     assemblyName: "Energinet.DataHub.ProcessManager.Orchestrations.Tests")]

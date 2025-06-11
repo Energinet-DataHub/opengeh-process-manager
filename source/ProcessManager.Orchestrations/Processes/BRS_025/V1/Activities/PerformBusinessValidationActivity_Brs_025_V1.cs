@@ -20,17 +20,20 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Orchestration.Steps;
 using Microsoft.Azure.Functions.Worker;
+using NodaTime;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Activities;
 
 internal class PerformBusinessValidationActivity_Brs_025_V1(
     IOrchestrationInstanceProgressRepository repository,
     BusinessValidator<RequestMeasurementsBusinessValidatedDto> validator,
-    IMeteringPointMasterDataProvider meteringPointMasterDataProvider)
+    IMeteringPointMasterDataProvider meteringPointMasterDataProvider,
+    IClock clock)
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly BusinessValidator<RequestMeasurementsBusinessValidatedDto> _validator = validator;
     private readonly IMeteringPointMasterDataProvider _meteringPointMasterDataProvider = meteringPointMasterDataProvider;
+    private readonly IClock _clock = clock;
 
     [Function(nameof(PerformBusinessValidationActivity_Brs_025_V1))]
     public async Task<ActivityOutput> Run(
@@ -47,7 +50,7 @@ internal class PerformBusinessValidationActivity_Brs_025_V1(
                 .GetMasterData(
                     orchestrationInstanceInput.MeteringPointId,
                     orchestrationInstanceInput.StartDateTime,
-                    orchestrationInstanceInput.EndDateTime!)
+                    orchestrationInstanceInput.EndDateTime ?? _clock.GetCurrentInstant().ToString())
                 .ConfigureAwait(false);
 
         var validationErrors = await _validator

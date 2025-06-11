@@ -21,8 +21,8 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes
 public record RequestMeasurementsInputV1(
     string ActorMessageId,
     string TransactionId,
-    ActorNumber ActorNumber,
-    ActorRole ActorRole,
+    string ActorNumber,
+    string ActorRole,
     string MeteringPointId,
     string StartDateTime,
     string? EndDateTime)

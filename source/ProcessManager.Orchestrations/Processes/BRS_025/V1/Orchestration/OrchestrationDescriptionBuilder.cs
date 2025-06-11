@@ -29,7 +29,7 @@ public class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
             uniqueName: new OrchestrationDescriptionUniqueName(
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
-            canBeScheduled: true,
+            canBeScheduled: false,
             functionName: nameof(Orchestration_Brs_025_V1));
 
         description.ParameterDefinition.SetFromType<RequestMeasurementsInputV1>();

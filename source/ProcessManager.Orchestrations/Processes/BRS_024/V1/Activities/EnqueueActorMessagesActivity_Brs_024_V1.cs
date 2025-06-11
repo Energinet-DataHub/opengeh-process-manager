@@ -105,8 +105,8 @@ public class EnqueueActorMessagesActivity_Brs_024_V1(
             OriginalTransactionId: input.TransactionId,
             MeteringPointId: input.MeteringPointId,
             MeteringPointType: MeteringPointType.Consumption,   // Elmark data
-            ActorNumber: input.ActorNumber,
-            ActorRole: input.ActorRole,
+            ActorNumber: ActorNumber.Create(input.ActorNumber),
+            ActorRole: ActorRole.FromName(input.ActorRole),
             AggregatedMeasurements: aggregatedMeasurements);
     }
 

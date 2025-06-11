@@ -85,10 +85,10 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             from: now.PlusDays(-365),
             to: now)
 ;
-        SetupElectricityMarketWireMocking(meteringPointId: "123456789012345678");
+        SetupElectricityMarketWireMocking(meteringPointId: meteringPointId);
 
         // Step 1: Start new orchestration instance
-        var requestCommand = GivenCommand(meteringPointId: "123456789012345678");
+        var requestCommand = GivenCommand(meteringPointId: meteringPointId);
 
         await Fixture.ProcessManagerMessageClient.StartNewOrchestrationInstanceAsync(
             requestCommand,
@@ -159,8 +159,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var input = new RequestMeasurementsInputV1(
             ActorMessageId: Guid.NewGuid().ToString(),
             TransactionId: Guid.NewGuid().ToString(),
-            ActorNumber: energySupplierNumber,
-            ActorRole: energySupplierRole,
+            ActorNumber: energySupplierNumber.Value,
+            ActorRole: energySupplierRole.Name,
             StartDateTime: "2025-01-07T22:00:00Z",
             EndDateTime: "2025-04-07T22:00:00Z",
             MeteringPointId: meteringPointId);

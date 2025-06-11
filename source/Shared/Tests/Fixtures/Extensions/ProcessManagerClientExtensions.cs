@@ -18,13 +18,17 @@ using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInsta
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1;
 
 namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 
 public static class ProcessManagerClientExtensions
 {
     private const int TimeLimitInSeconds = 60;
+
+    private const int BusinessValidationStep = 1;
+    private const int ForwardToMeasurementsStep = 2;
+    private const int FindReceiversStep = 3;
+    private const int EnqueueActorMessagesStep = 4;
 
     /// <summary>
     /// Wait for an orchestration instance, resolving true/false by using the given <paramref name="comparer"/> function.
@@ -194,16 +198,16 @@ public static class ProcessManagerClientExtensions
     }
 
     /// <summary>
-    /// Wait for a Send Measurements instance to be running (or terminated if <paramref name="mustBeTerminatedWithSuccess"/> is true).
+    /// Wait for a Send Measurements instance to be running (or terminated if <paramref name="mustBeTerminated"/> is true).
     /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
     /// </summary>
     /// <param name="client"></param>
     /// <param name="idempotencyKey">The idempotency key of the Send Measurements instance, used to find the correct instance.</param>
-    /// <param name="mustBeTerminatedWithSuccess">If true then the instance must be terminated.</param>
+    /// <param name="mustBeTerminated">If true then the instance must be terminated.</param>
     public static async Task<(bool Success, SendMeasurementsInstanceDto? Instance)> WaitForSendMeasurementsInstanceAsync(
         this IProcessManagerClient client,
         string idempotencyKey,
-        bool mustBeTerminatedWithSuccess = false)
+        bool mustBeTerminated = false)
     {
         SendMeasurementsInstanceDto? instance = null;
         var success = await Awaiter.TryWaitUntilConditionAsync(
@@ -219,14 +223,9 @@ public static class ProcessManagerClientExtensions
                             idempotencyKey),
                         CancellationToken.None);
 
-                if (!mustBeTerminatedWithSuccess)
-                    return instance is not null;
-
-                return instance is
-                {
-                    TerminatedAt: not null,
-                    FailedAt: null,
-                };
+                return mustBeTerminated
+                    ? instance is { TerminatedAt: not null }
+                    : instance is not null;
             },
             timeLimit: TimeSpan.FromSeconds(TimeLimitInSeconds),
             delay: TimeSpan.FromSeconds(1));
@@ -266,30 +265,23 @@ public static class ProcessManagerClientExtensions
                 if (instance is null)
                     return false;
 
-                bool result;
-
-                if (stepMustBeSuccessful)
-                {
-                    result = stepSequence switch
+                var result = stepMustBeSuccessful
+                    ? stepSequence switch
                     {
-                        OrchestrationDescriptionBuilder.BusinessValidationStep => instance.BusinessValidationSucceededAt is not null,
-                        OrchestrationDescriptionBuilder.FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
-                        OrchestrationDescriptionBuilder.ForwardToMeasurementsStep => instance.ReceivedFromMeasurementsAt is not null,
-                        OrchestrationDescriptionBuilder.EnqueueActorMessagesStep => instance.ReceivedFromEnqueueActorMessagesAt is not null,
+                        BusinessValidationStep => instance.BusinessValidationSucceededAt is not null,
+                        FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
+                        ForwardToMeasurementsStep => instance.ReceivedFromMeasurementsAt is not null,
+                        EnqueueActorMessagesStep => instance.ReceivedFromEnqueueActorMessagesAt is not null,
+                        _ => throw new ArgumentOutOfRangeException(nameof(stepSequence), $"Unknown step sequence: {stepSequence}."),
+                    }
+                    : stepSequence switch
+                    {
+                        BusinessValidationStep => true,
+                        FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
+                        ForwardToMeasurementsStep => instance.SentToMeasurementsAt is not null,
+                        EnqueueActorMessagesStep => instance.SentToEnqueueActorMessagesAt is not null,
                         _ => throw new ArgumentOutOfRangeException(nameof(stepSequence), $"Unknown step sequence: {stepSequence}."),
                     };
-                }
-                else
-                {
-                    result = stepSequence switch
-                    {
-                        OrchestrationDescriptionBuilder.BusinessValidationStep => true,
-                        OrchestrationDescriptionBuilder.FindReceiversStep => instance.BusinessValidationSucceededAt is not null,
-                        OrchestrationDescriptionBuilder.ForwardToMeasurementsStep => instance.SentToMeasurementsAt is not null,
-                        OrchestrationDescriptionBuilder.EnqueueActorMessagesStep => instance.SentToEnqueueActorMessagesAt is not null,
-                        _ => throw new ArgumentOutOfRangeException(nameof(stepSequence), $"Unknown step sequence: {stepSequence}."),
-                    };
-                }
 
                 return result;
             },

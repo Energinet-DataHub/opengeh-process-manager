@@ -42,6 +42,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_021.ForwardMeteredData.V1;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -279,7 +280,7 @@ public class StartForwardMeteredDataHandlerV1Tests
     }
 
     [Fact]
-    public async Task Given_InvalidInput_When_Handled_Then_BusinessValidationFailed_AndThen_RejectActorMessageIsEnqueued()
+    public async Task Given_InvalidInputFromActorSystem_When_Handled_Then_BusinessValidationFailed_AndThen_RejectActorMessageIsEnqueued()
     {
         // Arrange
         var input = new ForwardMeteredDataInputV1Builder()
@@ -330,6 +331,59 @@ public class StartForwardMeteredDataHandlerV1Tests
 
         // Measurements client should not be called
         _measurementsClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Given_InvalidInputFromMigrationSubsystem_When_Handled_Then_IsSentToMeasurements_AndThen_WarningIsLogged()
+    {
+        // Arrange
+        var input = new ForwardMeteredDataInputV1Builder()
+            .WithDataSource(ForwardMeteredDataInputV1.DataSourceEnum.MigrationSubsystem)
+            .WithMeteringPointId(_meteringPointId.Value)
+            .WithMeteredData([]) // Empty metered data will trigger validation error
+            .Build();
+
+        _meteringPointMasterDataProvider
+            .Setup(mpmdp => mpmdp.GetMasterData(_meteringPointId.Value, It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync([new MeteringPointMasterDataBuilder().BuildFromInput(input)])
+            .Verifiable(Times.Once);
+
+        var idempotencyKey = IdempotencyKey.CreateNew();
+
+        // Act
+        await Sut.HandleAsync(CreateStartOrchestrationInstanceFromInput(input), idempotencyKey);
+
+        // Assert
+        await using var assertionDbContext = _fixture.DatabaseManager.CreateDbContext();
+
+        var sendMeasurementsInstance = await assertionDbContext.SendMeasurementsInstances
+            .SingleOrDefaultAsync(oi => oi.IdempotencyKey == idempotencyKey.ToHash());
+
+        Assert.NotNull(sendMeasurementsInstance);
+        Assert.Multiple(
+            () => Assert.Equal(OrchestrationInstanceLifecycleState.Running, sendMeasurementsInstance.Lifecycle.State),
+            () => Assert.True(sendMeasurementsInstance.IsBusinessValidationSucceeded),
+            () => Assert.Empty(sendMeasurementsInstance.ValidationErrors.SerializedValue),
+            () => Assert.True(sendMeasurementsInstance.IsSentToMeasurements));
+
+        // Measurements client should be called once
+        _measurementsClient
+            .Verify(
+                mc => mc.SendAsync(
+                    It.IsAny<MeasurementsForMeteringPoint>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Exactly(1));
+        _measurementsClient.VerifyNoOtherCalls();
+
+        // Metering point master data client should be called once (setup at the start of the test)
+        _meteringPointMasterDataProvider.VerifyAll();
+        _meteringPointMasterDataProvider.VerifyNoOtherCalls();
+
+        // Enqueue actor messages client should not be called yet
+        _enqueueActorMessagesClient.VerifyNoOtherCalls();
+
+        // Warning should be logged
+        _logger.VerifyOnce(LogLevel.Warning, "Cleared validation errors");
     }
 
     [Fact]

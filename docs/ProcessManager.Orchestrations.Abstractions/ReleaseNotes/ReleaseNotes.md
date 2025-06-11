@@ -1,5 +1,9 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.4.2
+
+- Update NuGet package dependencies.
+
 ## Version 2.4.1
 
 - No functional changes.

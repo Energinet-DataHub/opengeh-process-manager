@@ -1,5 +1,13 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
+## Version 2.4.2
+
+- Add `RequestMeasurementsAcceptedV1`
+- Add `RequestMeasurementsRejectV1`
+- Add `RequestMeasurementsInputV1`
+- Add `RequestMeasurementsNotifyEventV1`
+- Add `RequestMeasurementsCommandV1`
+
 ## Version 2.4.1
 
 - No functional changes.

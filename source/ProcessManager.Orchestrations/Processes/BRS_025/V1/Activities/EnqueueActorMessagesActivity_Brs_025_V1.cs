@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.ObjectModel;
 using Energinet.DataHub.Measurements.Abstractions.Api.Models;
 using Energinet.DataHub.Measurements.Abstractions.Api.Queries;
 using Energinet.DataHub.Measurements.Client;
@@ -105,16 +106,16 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
         };
     }
 
-    private static Resolution MapResolution(Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution quality)
+    private static Resolution MapResolution(Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution resolution)
     {
-        return quality switch
+        return resolution switch
         {
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.QuarterHourly => Resolution.QuarterHourly,
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Hourly => Resolution.Hourly,
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Daily => Resolution.Daily,
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Monthly => Resolution.Monthly,
             Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.Yearly => Resolution.Yearly,
-            _ => throw new ArgumentOutOfRangeException(nameof(quality), $"Unknown quality: {quality}"),
+            _ => throw new ArgumentOutOfRangeException(nameof(resolution), $"Unknown resolution: {resolution}"),
         };
     }
 
@@ -194,9 +195,37 @@ public class EnqueueActorMessagesActivity_Brs_025_V1(
             To: to,
             From: from);
 
-        var measurementPointsFromMeasurements = await _measurementsClient
-            .GetCurrentByPeriodAsync(measurementsQuery).ConfigureAwait(false);
+        // TODO: Measurements has not implemented this API. TASK #???
+        // var measurementPointsFromMeasurements = await _measurementsClient
+        //     .GetCurrentByPeriodAsync(measurementsQuery).ConfigureAwait(false);
+        var measurementPointsFromMeasurements =
+            await GetMeasurementsByPeriodMockAsync(measurementsQuery).ConfigureAwait(false);
+
         return measurementPointsFromMeasurements.AsReadOnly();
+    }
+
+    private Task<ReadOnlyCollection<MeasurementPointDto>> GetMeasurementsByPeriodMockAsync(
+        GetByPeriodQuery measurementsQuery)
+    {
+        var mockedMeasurementPoints = new List<MeasurementPointDto>();
+
+        var resolution = Energinet.DataHub.Measurements.Abstractions.Api.Models.Resolution.QuarterHourly;
+        var currentTime = measurementsQuery.From.ToDateTimeOffset();
+        while (measurementsQuery.To.ToDateTimeOffset() > currentTime + GetResolutionDuration(resolution))
+        {
+            mockedMeasurementPoints.Add(new MeasurementPointDto(
+                Order: mockedMeasurementPoints.Count + 1,
+                RegistrationTime: currentTime,
+                PersistedTime: currentTime,
+                Quantity: 100.0m, // Mocked value
+                Quality: Energinet.DataHub.Measurements.Abstractions.Api.Models.Quality.Measured,
+                Resolution: resolution,
+                Unit: Unit.kWh));
+
+            currentTime += GetResolutionDuration(resolution);
+        }
+
+        return Task.FromResult(mockedMeasurementPoints.AsReadOnly());
     }
 
     private RequestMeasurementsAcceptedV1 GenerateMessage(

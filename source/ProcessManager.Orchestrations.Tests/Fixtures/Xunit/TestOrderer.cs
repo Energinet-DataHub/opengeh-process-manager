@@ -12,12 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.TraitDiscoverers;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit;
 
+/// <summary>
+/// Order tests by the order trait defined in <see cref="TestOrderAttribute"/>. If no order trait is defined,
+/// the default order value is 0.
+/// </summary>
 public class TestOrderer : ITestCaseOrderer
 {
     public const string TypeName = "Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.TestOrderer";

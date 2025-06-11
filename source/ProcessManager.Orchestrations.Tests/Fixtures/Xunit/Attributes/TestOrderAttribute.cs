@@ -18,7 +18,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.A
 
 /// <summary>
 /// Apply attribute on xUnit test class for tests to specify in which
-/// order the tests should be executed. If the attribute is not applied, the order 0 is the default.
+/// order the tests should be executed. If the attribute is not applied, the order is 0 by default.
 /// </summary>
 /// <remarks>
 /// The <see cref="TestOrderer"/> test case orderer must be applied to the test for this attribute

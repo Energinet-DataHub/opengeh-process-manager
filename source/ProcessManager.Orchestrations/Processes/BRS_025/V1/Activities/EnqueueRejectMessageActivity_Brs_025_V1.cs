@@ -14,25 +14,26 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.BusinessValidation;
+using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.EnqueueActorMessages;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Orchestration;
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Azure.Functions.Worker;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Activities;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Activities;
 
-public class EnqueueRejectMessageActivity_Brs_024_V1(
+public class EnqueueRejectMessageActivity_Brs_025_V1(
     IOrchestrationInstanceProgressRepository progressRepository,
     IEnqueueActorMessagesClient enqueueActorMessagesClient)
 {
     private readonly IOrchestrationInstanceProgressRepository _progressRepository = progressRepository;
     private readonly IEnqueueActorMessagesClient _enqueueActorMessagesClient = enqueueActorMessagesClient;
 
-    [Function(nameof(EnqueueRejectMessageActivity_Brs_024_V1))]
+    [Function(nameof(EnqueueRejectMessageActivity_Brs_025_V1))]
     public async Task Run(
         [ActivityTrigger] ActivityInput input)
     {
@@ -40,7 +41,7 @@ public class EnqueueRejectMessageActivity_Brs_024_V1(
             .GetAsync(input.InstanceId)
             .ConfigureAwait(false);
 
-        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestYearlyMeasurementsInputV1>();
+        var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestMeasurementsInputV1>();
 
         await EnqueueRejectMessageAsync(
             orchestrationInstance.Lifecycle.CreatedBy.Value,
@@ -51,9 +52,9 @@ public class EnqueueRejectMessageActivity_Brs_024_V1(
     private Task EnqueueRejectMessageAsync(
         OperatingIdentity orchestrationCreatedBy,
         ActivityInput input,
-        RequestYearlyMeasurementsInputV1 requestInput)
+        RequestMeasurementsInputV1 requestInput)
     {
-        var rejectedMessage = new RequestYearlyMeasurementsRejectV1(
+        var rejectedMessage = new RequestMeasurementsRejectV1(
             OriginalActorMessageId: requestInput.ActorMessageId,
             OriginalTransactionId: requestInput.TransactionId,
             ActorNumber: ActorNumber.Create(requestInput.ActorNumber),
@@ -66,7 +67,7 @@ public class EnqueueRejectMessageActivity_Brs_024_V1(
                 .ToList());
 
         return _enqueueActorMessagesClient.EnqueueAsync(
-            orchestration: Orchestration_Brs_024_V1.UniqueName,
+            orchestration: Orchestration_Brs_025_V1.UniqueName,
             orchestrationInstanceId: input.InstanceId.Value,
             orchestrationStartedBy: orchestrationCreatedBy.MapToDto(),
             input.IdempotencyKey,

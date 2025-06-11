@@ -22,7 +22,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orche
 using Energinet.DataHub.ProcessManager.Shared.Api.Mappers;
 using Microsoft.Extensions.Logging;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1;
 
 public class RequestYearlyMeasurementsHandlerV1(
     ILogger<RequestYearlyMeasurementsHandlerV1> logger,

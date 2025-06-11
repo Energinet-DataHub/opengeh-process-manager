@@ -1,8 +1,19 @@
 # ProcessManager.Orchestrations.Abstractions Release Notes
 
-## Version 2.4.2
+## Version 2.4.3
 
 - Update NuGet package dependencies.
+
+## Version 2.4.2
+
+- Add `RequestMeasurementsAcceptedV1`
+- Add `RequestMeasurementsRejectV1`
+- Add `RequestMeasurementsInputV1`
+- Add `RequestMeasurementsNotifyEventV1`
+- Add `RequestMeasurementsCommandV1`
+- Removed `ProductNumber` and `MeasureUnit` and `GridAreaCode` from `RequestYearlyMeasurementsAcceptedV1`.
+- Removed `BusinessReason` from `RequestYearlyMeasurementsRejectV1`.
+- Removed `BusinessReason` from `RequestYearlyMeasurementsInputV1`.
 
 ## Version 2.4.1
 

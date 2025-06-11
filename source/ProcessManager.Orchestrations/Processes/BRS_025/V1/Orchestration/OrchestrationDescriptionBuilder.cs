@@ -14,25 +14,25 @@
 
 using Energinet.DataHub.ProcessManager.Core.Application.Registration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationDescription;
-using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
-using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
+using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_025.V1.Model;
+using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Orchestration.Steps;
 
-namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration;
+namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Orchestration;
 
 public class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
 {
     public OrchestrationDescription Build()
     {
-        var orchestrationDescriptionUniqueName = Orchestration_Brs_024_V1.UniqueName;
+        var orchestrationDescriptionUniqueName = Orchestration_Brs_025_V1.UniqueName;
 
         var description = new OrchestrationDescription(
             uniqueName: new OrchestrationDescriptionUniqueName(
                 orchestrationDescriptionUniqueName.Name,
                 orchestrationDescriptionUniqueName.Version),
             canBeScheduled: false,
-            functionName: nameof(Orchestration_Brs_024_V1));
+            functionName: nameof(Orchestration_Brs_025_V1));
 
-        description.ParameterDefinition.SetFromType<RequestYearlyMeasurementsInputV1>();
+        description.ParameterDefinition.SetFromType<RequestMeasurementsInputV1>();
 
         description.AppendStepDescription(BusinessValidationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);

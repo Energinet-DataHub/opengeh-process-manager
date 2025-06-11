@@ -17,11 +17,11 @@ using Xunit.Sdk;
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 
 /// <summary>
-/// Apply attribute on xUnit test class for tests to specify in which
+/// Apply attribute on xUnit test method to specify in which
 /// order the tests should be executed. If the attribute is not applied, the order is 0 by default.
 /// </summary>
 /// <remarks>
-/// The <see cref="TestOrderer"/> test case orderer must be applied to the test for this attribute
+/// The <see cref="TestOrderer"/> test case orderer must be applied to the test class for this attribute
 /// to be used.
 /// </remarks>
 [TraitDiscoverer(

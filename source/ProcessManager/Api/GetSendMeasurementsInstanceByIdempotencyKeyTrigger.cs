@@ -42,7 +42,7 @@ internal class GetSendMeasurementsInstanceByIdempotencyKeyTrigger(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
             "post",
-            Route = "sendmeasurements/query/idempotencykey")]
+            Route = "sendmeasurementsinstance/query/idempotencykey")]
         HttpRequest httpRequest,
         [FromBody]
         GetSendMeasurementsInstanceByIdempotencyKeyQuery query,

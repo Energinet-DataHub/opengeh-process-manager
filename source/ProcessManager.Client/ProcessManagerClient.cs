@@ -337,7 +337,7 @@ internal class ProcessManagerClient : IProcessManagerClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            "/api/sendmeasurements/query/idempotencykey");
+            "/api/sendmeasurementsinstance/query/idempotencykey");
         var json = JsonSerializer.Serialize(query);
         request.Content = new StringContent(
             json,

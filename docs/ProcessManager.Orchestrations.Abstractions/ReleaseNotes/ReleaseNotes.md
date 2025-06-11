@@ -7,6 +7,10 @@
 - Add `RequestMeasurementsInputV1`
 - Add `RequestMeasurementsNotifyEventV1`
 - Add `RequestMeasurementsCommandV1`
+- Updated `ActorNumber` and `ActorRole` to strong types from `RequestYearlyMeasurementsInputV1`.
+- Removed `ProductNumber` and `MeasureUnit` and `GridAreaCode` from `RequestYearlyMeasurementsAcceptedV1`.
+- Removed `BusinessReason` from `RequestYearlyMeasurementsRejectV1`.
+- Removed `BusinessReason` from `RequestYearlyMeasurementsInputV1`.
 
 ## Version 2.4.1
 

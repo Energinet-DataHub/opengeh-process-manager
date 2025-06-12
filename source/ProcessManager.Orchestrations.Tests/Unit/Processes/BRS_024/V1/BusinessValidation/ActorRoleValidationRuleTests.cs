@@ -33,20 +33,6 @@ public sealed class ActorRoleValidationRuleTests
             .Except(ValidActorRoles),
     ];
 
-    [Fact]
-    public async Task Given_NoMasterData_When_Validate_Then_NoValidationError()
-    {
-        var input = new RequestYearlyMeasurementsInputV1Builder()
-            .Build();
-
-        var result = await _sut.ValidateAsync(
-            new(
-                input,
-                null));
-
-        result.Should().BeEmpty();
-    }
-
     [Theory]
     [MemberData(nameof(ValidActorRoles))]
     public async Task ValidateAsync_WhenRequestingWithValidActorRole_ReturnsEmptyErrorListAsync(ActorRole actorRole)

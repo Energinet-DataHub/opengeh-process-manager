@@ -28,11 +28,6 @@ public sealed class ActorRoleValidationRule : IBusinessValidationRule<RequestYea
 
     public Task<IList<ValidationError>> ValidateAsync(RequestYearlyMeasurementsBusinessValidatedDto subject)
     {
-        if (subject.MeteringPointMasterData is null)
-        {
-            return Task.FromResult(NoError);
-        }
-
         if (subject.Input.ActorRole == ActorRole.EnergySupplier.Name)
             return Task.FromResult(NoError);
 

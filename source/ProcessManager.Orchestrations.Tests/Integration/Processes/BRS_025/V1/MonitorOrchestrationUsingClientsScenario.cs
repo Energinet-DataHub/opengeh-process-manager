@@ -78,11 +78,17 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         // Setting up mock
         var now = SystemClock.Instance.GetCurrentInstant();
+        var nowToUse = now.InUtc()
+            .WithZone(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"])
+            .LocalDateTime.Date.AtMidnight();
+
         var meteringPointId = "123456789012345678";
         Fixture.OrchestrationsAppManager.MockServer.MockGetAggregatedByYearForPeriodHttpResponse(
             meteringPointId: meteringPointId,
-            from: now.PlusDays(-365),
-            to: now)
+            from: nowToUse.PlusDays(-365)
+                .InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"])
+                .ToInstant(),
+            to: nowToUse.InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"]).ToInstant())
 ;
         SetupElectricityMarketWireMocking(meteringPointId: meteringPointId);
 

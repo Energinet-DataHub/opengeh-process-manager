@@ -14,6 +14,7 @@
 
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
 
 namespace Energinet.DataHub.ProcessManager.Client;
 
@@ -116,4 +117,11 @@ public interface IProcessManagerClient
         SearchOrchestrationInstancesByCustomQuery<TItem> query,
         CancellationToken cancellationToken)
             where TItem : class;
+
+    /// <summary>
+    /// Get Send Measurements instance by idempotency key.
+    /// </summary>
+    Task<SendMeasurementsInstanceDto?> GetSendMeasurementsInstanceByIdempotencyKeyAsync(
+        GetSendMeasurementsInstanceByIdempotencyKeyQuery query,
+        CancellationToken cancellationToken);
 }

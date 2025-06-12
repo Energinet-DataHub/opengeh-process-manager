@@ -1,5 +1,9 @@
 # ProcessManager.Components.Abstractions Release Notes
 
+## Version 2.0.10
+
+- Update NuGet package dependencies.
+
 ## Version 2.0.9
 
 - Update `BusinessReason` with `YearlyMetering`.

@@ -17,6 +17,7 @@ using System.Text;
 using System.Text.Json;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Client.Extensions;
 using Energinet.DataHub.ProcessManager.Client.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Shared.Api.Json;
@@ -327,5 +328,37 @@ internal class ProcessManagerClient : IProcessManagerClient
             .ConfigureAwait(false);
 
         return orchestrationInstances!;
+    }
+
+    /// <inheritdoc/>
+    public async Task<SendMeasurementsInstanceDto?> GetSendMeasurementsInstanceByIdempotencyKeyAsync(
+        GetSendMeasurementsInstanceByIdempotencyKeyQuery query,
+        CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/sendmeasurementsinstance/query/idempotencykey");
+        var json = JsonSerializer.Serialize(query);
+        request.Content = new StringContent(
+            json,
+            Encoding.UTF8,
+            "application/json");
+
+        using var actualResponse = await _generalApiHttpClient
+            .SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        actualResponse.EnsureSuccessStatusCode();
+
+        if (actualResponse.Content == null
+            || actualResponse.Content.Headers.ContentLength == 0)
+        {
+            return null;
+        }
+
+        var sendMeasurementsInstance = await actualResponse.Content
+            .ReadFromJsonAsync<SendMeasurementsInstanceDto>(cancellationToken)
+            .ConfigureAwait(false);
+
+        return sendMeasurementsInstance;
     }
 }

@@ -15,6 +15,7 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
 using Microsoft.Azure.Databricks.Client;
 
 namespace Energinet.DataHub.ProcessManager.SubsystemTests.Fixtures.Extensions;

@@ -1,5 +1,11 @@
 # ProcessManager.Client Release Notes
 
+## Version 6.1.0
+
+- Add `GetSendMeasurementsInstanceByIdempotencyKeyAsync()` to `IProcessManagerClient` to query Send Measurements instances.
+- Add `GetSendMeasurementsInstanceByIdempotencyKeyQuery` query.
+- Add `SendMeasurementsInstanceDto` type.
+
 ## Version 6.0.1
 
 - No functional changes.

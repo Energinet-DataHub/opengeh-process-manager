@@ -15,6 +15,7 @@
 using Energinet.DataHub.Core.TestCommon;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model;
 using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance;
+using Energinet.DataHub.ProcessManager.Abstractions.Api.Model.SendMeasurements;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Client;
 
@@ -23,6 +24,13 @@ namespace Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 public static class ProcessManagerClientExtensions
 {
     private const int TimeLimitInSeconds = 60;
+
+    public enum SendMeasurementsInstanceStep
+    {
+        BusinessValidation,
+        ForwardToMeasurements,
+        EnqueueActorMessages,
+    }
 
     /// <summary>
     /// Wait for an orchestration instance, resolving true/false by using the given <paramref name="comparer"/> function.
@@ -189,5 +197,95 @@ public static class ProcessManagerClientExtensions
 
                 return enqueueActorMessagesStep.Lifecycle.State == StepInstanceLifecycleState.Running;
             });
+    }
+
+    /// <summary>
+    /// Wait for a Send Measurements instance to be running (or terminated if <paramref name="mustBeTerminated"/> is true).
+    /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="idempotencyKey">The idempotency key used to find the correct instance.</param>
+    /// <param name="mustBeTerminated">If true then the instance must be terminated.</param>
+    public static async Task<(bool Success, SendMeasurementsInstanceDto? Instance)> WaitForSendMeasurementsInstanceAsync(
+        this IProcessManagerClient client,
+        string idempotencyKey,
+        bool mustBeTerminated = false)
+    {
+        SendMeasurementsInstanceDto? instance = null;
+        var success = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                instance = await client
+                    .GetSendMeasurementsInstanceByIdempotencyKeyAsync(
+                        new GetSendMeasurementsInstanceByIdempotencyKeyQuery(
+                            new UserIdentityDto(
+                                UserId: Guid.NewGuid(),
+                                ActorNumber: ActorNumber.Create("1234567891234"),
+                                ActorRole: ActorRole.EnergySupplier),
+                            idempotencyKey),
+                        CancellationToken.None);
+
+                return mustBeTerminated
+                    ? instance is { TerminatedAt: not null }
+                    : instance is not null;
+            },
+            timeLimit: TimeSpan.FromSeconds(TimeLimitInSeconds),
+            delay: TimeSpan.FromSeconds(1));
+
+        return (success, instance);
+    }
+
+    /// <summary>
+    /// Wait for a Send Measurements instance step to be running (or successful
+    /// if <paramref name="stepMustBeSuccessful"/> is true).
+    /// <remarks>Returns false if not resolved in <see cref="TimeLimitInSeconds"/> seconds.</remarks>
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="idempotencyKey">The idempotency key used to find the correct instance.</param>
+    /// <param name="step">The step that should be running (or successful).</param>
+    /// <param name="stepMustBeSuccessful">If true then the step must be completed successfully, else the step must be running.</param>
+    public static async Task<(bool Success, SendMeasurementsInstanceDto? Instance)> WaitForSendMeasurementsInstanceStepAsync(
+        this IProcessManagerClient client,
+        string idempotencyKey,
+        SendMeasurementsInstanceStep step,
+        bool stepMustBeSuccessful = false)
+    {
+        SendMeasurementsInstanceDto? instance = null;
+        var success = await Awaiter.TryWaitUntilConditionAsync(
+            async () =>
+            {
+                instance = await client
+                    .GetSendMeasurementsInstanceByIdempotencyKeyAsync(
+                        new GetSendMeasurementsInstanceByIdempotencyKeyQuery(
+                            new UserIdentityDto(
+                                UserId: Guid.NewGuid(),
+                                ActorNumber: ActorNumber.Create("1234567891234"),
+                                ActorRole: ActorRole.EnergySupplier),
+                            idempotencyKey),
+                        CancellationToken.None);
+
+                if (instance is null)
+                    return false;
+
+                return stepMustBeSuccessful
+                    ? step switch
+                    {
+                        SendMeasurementsInstanceStep.BusinessValidation => instance.BusinessValidationSucceededAt is not null,
+                        SendMeasurementsInstanceStep.ForwardToMeasurements => instance.ReceivedFromMeasurementsAt is not null,
+                        SendMeasurementsInstanceStep.EnqueueActorMessages => instance.ReceivedFromEnqueueActorMessagesAt is not null,
+                        _ => throw new ArgumentOutOfRangeException(nameof(step), $"Unknown step: {step}."),
+                    }
+                    : step switch
+                    {
+                        SendMeasurementsInstanceStep.BusinessValidation => true,
+                        SendMeasurementsInstanceStep.ForwardToMeasurements => instance.SentToMeasurementsAt is not null,
+                        SendMeasurementsInstanceStep.EnqueueActorMessages => instance.SentToEnqueueActorMessagesAt is not null,
+                        _ => throw new ArgumentOutOfRangeException(nameof(step), $"Unknown step: {step}."),
+                    };
+            },
+            timeLimit: TimeSpan.FromSeconds(TimeLimitInSeconds),
+            delay: TimeSpan.FromSeconds(1));
+
+        return (success, instance);
     }
 }

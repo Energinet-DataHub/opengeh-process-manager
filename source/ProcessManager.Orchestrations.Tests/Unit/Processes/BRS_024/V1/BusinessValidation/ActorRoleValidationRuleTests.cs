@@ -68,7 +68,7 @@ public sealed class ActorRoleValidationRuleTests
 
     [Theory]
     [MemberData(nameof(InvalidActorRoles))]
-    public async Task ValidateAsync_WhenRequestingWithUnexpectedActorRole_ReturnsEmptyErrorListAsync(ActorRole actorRole)
+    public async Task Validate_WhenRequestingWithInvalidActorRole_ReturnsNoValidationErrors(ActorRole actorRole)
     {
         var input = new RequestYearlyMeasurementsInputV1Builder()
             .WithActorRole(actorRole)

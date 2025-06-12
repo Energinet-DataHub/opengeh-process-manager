@@ -12,10 +12,12 @@
   </ItemGroup>
   <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Azure.Identity" Version="1.14.0" />
         <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="7.1.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.1" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.2" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.1" />
         <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="15.5.0" />
+        <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.6" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\ProcessManager.Components\ProcessManager.Components.csproj" />

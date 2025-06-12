@@ -8,7 +8,18 @@ With this in mind, one should do all synchronous validations in the correspondin
 
 ## C4 Diagram of the process manager
 
-Update this
+![image](./docs/diagrams/c4-model/shitmanhelp)
+
+### Description
+
+A description of the C4 diagram can be found [here](https://energinet.atlassian.net/wiki/spaces/D3/pages/424476791/Domain+C4+Model)
+
+### To update the c4 diagram
+
+- Open visual studio Code
+- hit ctrl + p -> an input field will appear in the top
+- search for: `task structurizr lite: Load 'views'` and select the task which appears (This makes use of [docker](https://www.docker.com/))
+- open a browser and go to: [localhost:8080/workspace/diagrams](http://localhost:8080/workspace/diagrams)
 
 ## Getting Started
 

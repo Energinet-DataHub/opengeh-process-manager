@@ -349,12 +349,12 @@ public class OrchestrationsAppManager : IAsyncDisposable
             IntegrationTestConfiguration.AppConfigurationEndpoint);
         appHostSettings.ProcessEnvironmentVariables.Add(
             AppConfigurationManager.DisableProviderSettingName,
-            "true");
+            true.ToString());
 
         // Default feature flag values.
         appHostSettings.ProcessEnvironmentVariables.Add(
-            $"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}",
-            "false");
+            $"{FeatureFlagNames.SectionName}__{FeatureFlagNames.EnableAdditionalRecipients}",
+            false.ToString());
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{AdditionalRecipientsOptions.SectionName}__{nameof(AdditionalRecipientsOptions.Environment)}",
             "Development");
@@ -423,7 +423,7 @@ public class OrchestrationsAppManager : IAsyncDisposable
         // BRS-021 Send Measurements feature flag
         appHostSettings.ProcessEnvironmentVariables.Add(
             $"{FeatureFlagNames.SectionName}__{FeatureFlagNames.UseNewSendMeasurementsTable}",
-            false.ToString()); // TODO: Enable once all handlers are updated
+            true.ToString());
 
         // => Edi enqueue topic
         appHostSettings.ProcessEnvironmentVariables.Add(

@@ -35,6 +35,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardM
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_021.ForwardMeteredData.V1.Triggers;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures;
+using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit;
 using Energinet.DataHub.ProcessManager.Orchestrations.Tests.Fixtures.Xunit.Attributes;
 using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
@@ -52,11 +53,8 @@ using Xunit.Abstractions;
 using ElectricityMarketModels = Energinet.DataHub.ElectricityMarket.Integration.Models.MasterData;
 using MeteringPointId = Energinet.DataHub.ProcessManager.Components.MeteringPointMasterData.Model.MeteringPointId;
 using MeteringPointType = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.MeteringPointType;
-using OrchestrationInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.OrchestrationInstanceTerminationState;
 using Quality = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Quality;
 using Resolution = Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects.Resolution;
-using StepInstanceLifecycleState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceLifecycleState;
-using StepInstanceTerminationState = Energinet.DataHub.ProcessManager.Abstractions.Api.Model.OrchestrationInstance.StepInstanceTerminationState;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Processes.BRS_021.ForwardMeteredData.V1;
 
@@ -65,6 +63,7 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Integration.Proc
 /// forward metered data flow
 /// </summary>
 [ParallelWorkflow(WorkflowBucket.Bucket03)]
+[TestCaseOrderer(ordererTypeName: TestOrderer.TypeName, ordererAssemblyName: TestOrderer.AssemblyName)]
 [Collection(nameof(OrchestrationsAppCollection))]
 public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 {
@@ -119,7 +118,9 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         _fixture.OrchestrationsAppManager.AppHostManager.ClearHostLog();
         _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.ResetMessageHandlersAndReceivedMessages();
         _fixture.EventHubListener.Reset();
-        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "false")]);
+        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([
+                new($"{FeatureFlagNames.SectionName}__{FeatureFlagNames.EnableAdditionalRecipients}", false.ToString()),
+        ]);
 
         return Task.CompletedTask;
     }
@@ -134,7 +135,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidForwardMeteredDataInputV1_When_Started_Then_InstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
@@ -151,12 +152,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+            .WaitForSendMeasurementsInstanceStepAsync(
                 forwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.ForwardToMeasurements);
 
         isWaitingForMeasurementsNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
+            .BeTrue("because the instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
@@ -191,18 +192,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             messageId: forwardCommand.ActorMessageId);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
-                idempotencyKey: forwardCommand.IdempotencyKey);
+        var (instanceWasTerminated, terminatedInstance) = await _fixture.ProcessManagerClient
+            .WaitForSendMeasurementsInstanceAsync(
+                idempotencyKey: forwardCommand.IdempotencyKey,
+                mustBeTerminated: true);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+        instanceWasTerminated.Should().BeTrue(
+            "because the instance should be terminated within given wait time");
 
-        // Orchestration instance and all steps should be Succeeded
+        // Instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
-        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
-            .NotBeNull()
-            .And.Be(OrchestrationInstanceTerminationState.Succeeded);
+        terminatedInstance!.TerminatedAt.Should()
+            .NotBeNull();
+        terminatedInstance.FailedAt.Should()
+            .BeNull();
 
         var meteringPointMasterData = new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId(MeteringPointId),
@@ -219,32 +222,38 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ProductId: "Tariff",
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
-        var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
+        var expectedMasterDataCustomState = new ForwardMeteredDataCustomStateV2(
             HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
             ],
             AdditionalRecipients: []);
 
-        terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
+        var actualMasterData = JsonSerializer.Deserialize<ForwardMeteredDataCustomStateV2>(terminatedInstance.MasterData!);
+        actualMasterData.Should()
+            .BeEquivalentTo(expectedMasterDataCustomState);
 
-        terminatedOrchestrationInstance.Steps.Should()
-            .AllSatisfy(
-                s =>
-                {
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Succeeded);
-                });
+        terminatedInstance.BusinessValidationSucceededAt.Should().NotBeNull();
+        terminatedInstance.SentToMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.SentToEnqueueActorMessagesAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromEnqueueActorMessagesAt.Should().NotBeNull();
+        terminatedInstance.TerminatedAt.Should().NotBeNull();
+        terminatedInstance.FailedAt.Should().BeNull();
     }
 
+    /// <remarks>
+    /// Default order is 0, so this test will run after the other tests in this class, to ensure as few app restarts
+    /// (because of feature flag changes) as possible.
+    /// </remarks>
     [Fact]
+    [TestOrder(1)]
     public async Task
-        Given_MeteringPointWithAdditionalRecipients_When_Started_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_MeteringPointWithAdditionalRecipients_When_Started_Then_InstanceTerminatesWithSuccess()
     {
-        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([new($"FeatureManagement__{FeatureFlagNames.EnableAdditionalRecipients}", "true")]);
+        _fixture.OrchestrationsAppManager.AppHostManager.RestartHostIfChanges([
+            new($"{FeatureFlagNames.SectionName}__{FeatureFlagNames.EnableAdditionalRecipients}", true.ToString()),
+        ]);
 
         // Arrange
         SetupElectricityMarketWireMocking(MeteringPointIdWithAdditionalRecipients);
@@ -261,12 +270,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
-                forwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
+            .WaitForSendMeasurementsInstanceStepAsync(
+                idempotencyKey: forwardCommand.IdempotencyKey,
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.ForwardToMeasurements);
 
         isWaitingForMeasurementsNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
+            .BeTrue("because the instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
@@ -301,18 +310,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             messageId: forwardCommand.ActorMessageId);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
-                idempotencyKey: forwardCommand.IdempotencyKey);
+        var (instanceWasTerminated, terminatedInstance) = await _fixture.ProcessManagerClient
+            .WaitForSendMeasurementsInstanceAsync(
+                idempotencyKey: forwardCommand.IdempotencyKey,
+                mustBeTerminated: true);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+        instanceWasTerminated.Should().BeTrue(
+            "because the instance should be terminated within given wait time");
 
-        // Orchestration instance and all steps should be Succeeded
+        // Instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
-        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
-            .NotBeNull()
-            .And.Be(OrchestrationInstanceTerminationState.Succeeded);
+        terminatedInstance!.TerminatedAt.Should()
+            .NotBeNull();
+        terminatedInstance.FailedAt.Should()
+            .BeNull();
 
         var meteringPointMasterData = new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId(MeteringPointIdWithAdditionalRecipients),
@@ -329,7 +340,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ProductId: "Tariff",
             ParentMeteringPointId: null,
             EnergySupplier: ActorNumber.Create(EnergySupplier));
-        var expectedCustomStateV1 = new ForwardMeteredDataCustomStateV2(
+        var expectedMasterDataCustomState = new ForwardMeteredDataCustomStateV2(
             HistoricalMeteringPointMasterData:
             [
                 ForwardMeteredDataCustomStateV2.MasterData.FromMeteringPointMasterData(meteringPointMasterData)
@@ -339,23 +350,21 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
                 Actor.From("5798000020016", "DanishEnergyAgency")
             ]);
 
-        terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
+        var actualMasterData = JsonSerializer.Deserialize<ForwardMeteredDataCustomStateV2>(terminatedInstance.MasterData!);
+        actualMasterData.Should()
+            .BeEquivalentTo(expectedMasterDataCustomState);
 
-        terminatedOrchestrationInstance.Steps.Should()
-            .AllSatisfy(
-                s =>
-                {
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Succeeded);
-                });
+        // All steps should be succeeded
+        terminatedInstance.BusinessValidationSucceededAt.Should().NotBeNull();
+        terminatedInstance.SentToMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.SentToEnqueueActorMessagesAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromEnqueueActorMessagesAt.Should().NotBeNull();
     }
 
     [Fact]
     public async Task
-        Given_ValidForwardMeteredDataInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_OrchestrationInstanceTerminatesWithSuccess()
+        Given_ValidForwardMeteredDataInputV1FromDelegatedGridOperator_When_StartedAndDelegation_Then_InstanceTerminatesWithSuccess()
     {
         // Arrange
         SetupElectricityMarketWireMocking();
@@ -373,12 +382,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
 
         // Step 2a: Query until waiting for Event Hub notify event from Measurements
         var (isWaitingForMeasurementsNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+            .WaitForSendMeasurementsInstanceStepAsync(
                 forwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.ForwardToMeasurements);
 
         isWaitingForMeasurementsNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a notify event from Measurements");
+            .BeTrue("because the instance should wait for a notify event from Measurements");
 
         // Verify that an persistSubmittedTransaction event is sent on the event hub
         var verifyForwardMeteredDataToMeasurementsEvent = await _fixture.EventHubListener.When(
@@ -413,18 +422,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             messageId: forwardCommand.ActorMessageId);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
-                idempotencyKey: forwardCommand.IdempotencyKey);
+        var (wasTerminated, terminatedInstance) = await _fixture.ProcessManagerClient
+            .WaitForSendMeasurementsInstanceAsync(
+                idempotencyKey: forwardCommand.IdempotencyKey,
+                mustBeTerminated: true);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+        wasTerminated.Should().BeTrue(
+            "because the instance should be terminated within given wait time");
 
-        // Orchestration instance and all steps should be Succeeded
+        // Instance and all steps should be Succeeded
         using var assertionScope = new AssertionScope();
-        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
-            .NotBeNull()
-            .And.Be(OrchestrationInstanceTerminationState.Succeeded);
+        terminatedInstance!.TerminatedAt.Should()
+            .NotBeNull();
+        terminatedInstance.FailedAt.Should()
+            .BeNull();
 
         var meteringPointMasterData = new MeteringPointMasterData(
             MeteringPointId: new MeteringPointId(MeteringPointId),
@@ -448,22 +459,20 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ],
             AdditionalRecipients: []);
 
-        terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(expectedCustomStateV1));
+        var actualMasterData = JsonSerializer.Deserialize<ForwardMeteredDataCustomStateV2>(terminatedInstance.MasterData!);
+        actualMasterData.Should()
+            .BeEquivalentTo(expectedCustomStateV1);
 
-        terminatedOrchestrationInstance.Steps.Should()
-            .AllSatisfy(
-                s =>
-                {
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Succeeded);
-                });
+        // All steps should be succeeded
+        terminatedInstance.BusinessValidationSucceededAt.Should().NotBeNull();
+        terminatedInstance.SentToMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromMeasurementsAt.Should().NotBeNull();
+        terminatedInstance.SentToEnqueueActorMessagesAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromEnqueueActorMessagesAt.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_OrchestrationInstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
+    public async Task Given_InvalidForwardMeteredDataInputV1_When_Started_Then_InstanceTerminatesWithFailed_AndThen_BusinessValidationStepFailed()
     {
         // Given
         SetupElectricityMarketWireMocking();
@@ -481,12 +490,12 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Then
         // Query until waiting for EnqueueActorMessagesCompleted notify event (a reject message should be enqueued)
         var (isWaitingForNotify, orchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForStepToBeRunning<ForwardMeteredDataInputV1>(
+            .WaitForSendMeasurementsInstanceStepAsync(
                 invalidForwardCommand.IdempotencyKey,
-                OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
+                ProcessManagerClientExtensions.SendMeasurementsInstanceStep.EnqueueActorMessages);
 
         isWaitingForNotify.Should()
-            .BeTrue("because the orchestration instance should wait for a EnqueueActorMessagesCompleted notify event");
+            .BeTrue("because the instance should wait for a EnqueueActorMessagesCompleted notify event");
 
         // Verify an enqueue actor messages event is sent on the service bus
         var verifyEnqueueRejectedActorMessagesEvent = await _fixture.EnqueueBrs021ForwardMeteredDataServiceBusListener.When(
@@ -517,61 +526,36 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             CancellationToken.None);
 
         // Query until terminated
-        var (orchestrationTerminatedWithSucceeded, terminatedOrchestrationInstance) = await _fixture.ProcessManagerClient
-            .WaitForOrchestrationInstanceTerminated<ForwardMeteredDataInputV1>(
-                idempotencyKey: invalidForwardCommand.IdempotencyKey);
+        var (wasTerminated, terminatedInstance) = await _fixture.ProcessManagerClient
+            .WaitForSendMeasurementsInstanceAsync(
+                idempotencyKey: invalidForwardCommand.IdempotencyKey,
+                mustBeTerminated: true);
 
-        orchestrationTerminatedWithSucceeded.Should().BeTrue(
-            "because the orchestration instance should be terminated within given wait time");
+        wasTerminated.Should().BeTrue(
+            "because the instance should be terminated within given wait time");
 
-        // Orchestration instance and validation steps should be Failed
+        // Instance and validation step should be Failed
         using var assertionScope = new AssertionScope();
-        terminatedOrchestrationInstance!.Lifecycle.TerminationState.Should()
-            .NotBeNull()
-            .And.Be(OrchestrationInstanceTerminationState.Failed);
+        terminatedInstance!.TerminatedAt.Should()
+            .NotBeNull();
+        terminatedInstance.FailedAt.Should()
+            .BeNull();
 
-        terminatedOrchestrationInstance.CustomState.Should()
-            .BeEquivalentTo(JsonSerializer.Serialize(new ForwardMeteredDataCustomStateV2([], [])));
+        var actualMasterData = JsonSerializer.Deserialize<ForwardMeteredDataCustomStateV2>(terminatedInstance.MasterData!);
+        actualMasterData.Should()
+            .BeEquivalentTo(new ForwardMeteredDataCustomStateV2([], []));
 
-        terminatedOrchestrationInstance.Steps.OrderBy(s => s.Sequence)
-            .Should()
-            .SatisfyRespectively(
-                s =>
-                {
-                    // Validation step should be failed
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.BusinessValidationStep);
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Failed);
-                },
-                s =>
-                {
-                    // Forward to measurements step should be skipped
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.ForwardToMeasurementsStep);
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Skipped);
-                },
-                s =>
-                {
-                    // Find receiver step should be skipped
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.FindReceiversStep);
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Skipped);
-                },
-                s =>
-                {
-                    // Enqueue actor messages step should be succeeded
-                    s.Sequence.Should().Be(OrchestrationDescriptionBuilder.EnqueueActorMessagesStep);
-                    s.Lifecycle.State.Should().Be(StepInstanceLifecycleState.Terminated);
-                    s.Lifecycle.TerminationState.Should()
-                        .NotBeNull()
-                        .And.Be(StepInstanceTerminationState.Succeeded);
-                });
+        // Validation step should be failed
+        terminatedInstance.BusinessValidationSucceededAt.Should().BeNull();
+        terminatedInstance.ValidationErrors.Should().NotBeNull();
+
+        // Forward to measurements step should be skipped
+        terminatedInstance.SentToMeasurementsAt.Should().BeNull();
+        terminatedInstance.ReceivedFromMeasurementsAt.Should().BeNull();
+
+        // Enqueue actor messages step should be succeeded
+        terminatedInstance.SentToEnqueueActorMessagesAt.Should().NotBeNull();
+        terminatedInstance.ReceivedFromEnqueueActorMessagesAt.Should().NotBeNull();
     }
 
     /// <summary>
@@ -582,7 +566,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     /// out-of-box functionality and we expect it to work.
     /// </summary>
     [Fact]
-    public async Task Given_InvalidNotifyEvent_When_NotifyOrchestrationInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
+    public async Task Given_InvalidNotifyEvent_When_NotifyInstance_Then_EnqueueMeteredDataTriggerIsExecutedAtLeastTwice()
     {
         // Given
         var invalidNotifyFromMeasurements = new Brs021ForwardMeteredDataNotifyV1()

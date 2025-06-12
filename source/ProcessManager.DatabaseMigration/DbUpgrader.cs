@@ -16,13 +16,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using DbUp;
 using DbUp.Engine;
+using Energinet.DataHub.ProcessManager.DatabaseMigration.Customization;
 using Microsoft.Data.SqlClient;
 
 namespace Energinet.DataHub.ProcessManager.DatabaseMigration;
 
 public static class DbUpgrader
 {
-    public static DatabaseUpgradeResult DatabaseUpgrade(string connectionString)
+    public static DatabaseUpgradeResult DatabaseUpgrade(
+        string connectionString,
+        string environment = "")
     {
         EnsureDatabase.For.SqlDatabase(connectionString);
 
@@ -31,16 +34,16 @@ public static class DbUpgrader
         var schemaName = "pm";
         CreateSchema(connectionString, schemaName);
 
-        var upgrader =
-            DeployChanges.To
-                .SqlDatabase(connectionString)
-                .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
-                .LogToConsole()
-                .WithExecutionTimeout(TimeSpan.FromHours(1))
-                .JournalToSqlTable(schemaName, "SchemaVersions")
-                .Build();
+        var upgradeEngine = DeployChanges.To
+            .SqlDatabase(connectionString)
+            .WithScriptNameComparer(new ScriptComparer())
+            .WithScripts(new CustomScriptProvider(Assembly.GetExecutingAssembly(), GetScriptFilter(environment)))
+            .LogToConsole()
+            .WithExecutionTimeout(TimeSpan.FromHours(1))
+            .JournalToSqlTable(schemaName, "SchemaVersions")
+            .Build();
 
-        var result = upgrader.PerformUpgrade();
+        var result = upgradeEngine.PerformUpgrade();
         return result;
     }
 
@@ -59,5 +62,22 @@ public static class DbUpgrader
 
         using var command = new SqlCommand(createProcessManagerSchemaSql, connection);
         command.ExecuteNonQuery();
+    }
+
+    private static Func<string, bool> GetScriptFilter(string environment)
+    {
+        if (environment.Contains("DEV") || environment.Contains("TEST"))
+        {
+            // In DEV and TEST environments we want to apply an additional script
+            return file =>
+                file.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)
+                && (
+                    file.Contains("202512061200 Grant access to query execution plan", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains(".Scripts.Model.", StringComparison.OrdinalIgnoreCase));
+        }
+
+        return file =>
+            file.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)
+            && file.Contains(".Scripts.Model.", StringComparison.OrdinalIgnoreCase);
     }
 }

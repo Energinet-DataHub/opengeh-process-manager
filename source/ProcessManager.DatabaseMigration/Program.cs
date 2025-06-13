@@ -30,24 +30,10 @@ public static class Program
         var environment = EnvironmentParser.Parse(args);
 
         Console.WriteLine($"Performing upgrade using ConnectionString={connectionString}; Environment={environment};");
-        var result = DbUpgrader.DatabaseUpgrade(
+        var upgradeResult = DbUpgrader.DatabaseUpgrade(
             connectionString,
             environment);
 
-        if (!result.Successful)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(result.Error);
-            Console.ResetColor();
-#if DEBUG
-            Console.ReadLine();
-#endif
-            return -1;
-        }
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Success!");
-        Console.ResetColor();
-        return 0;
+        return ResultReporter.ReportResult(upgradeResult);
     }
 }

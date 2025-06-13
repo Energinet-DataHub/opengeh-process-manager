@@ -74,14 +74,23 @@ public static class DbUpgrader
     {
         if (environment.Contains("DEV") || environment.Contains("TEST"))
         {
-            // In DEV and TEST environments we want to apply all scripts
+            // In DEV and TEST environments we want to apply an additional script
             return file =>
-                file.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)
-                && file.Contains(".Scripts.", StringComparison.OrdinalIgnoreCase);
+                file.Contains("202512061200 Grant access to query execution plan.sql", StringComparison.OrdinalIgnoreCase)
+                || IsModelScriptFile(file);
         }
 
-        // In other environments we do not want to apply scripts located within the "Permissions" folder
-        return file =>
+        // In other environments we only want to apply "Model" script files
+        return file => IsModelScriptFile(file);
+    }
+
+    /// <summary>
+    /// Based on the filename this method determines if the script is a "Model"
+    /// script file, which is a script file used to create the database schema/model.
+    /// </summary>
+    private static bool IsModelScriptFile(string file)
+    {
+        return
             file.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)
             && file.Contains(".Scripts.", StringComparison.OrdinalIgnoreCase)
             && !file.Contains(".Permissions.", StringComparison.OrdinalIgnoreCase);

@@ -74,16 +74,16 @@ public static class DbUpgrader
     {
         if (environment.Contains("DEV") || environment.Contains("TEST"))
         {
-            // In DEV and TEST environments we want to apply an additional script
+            // In DEV and TEST environments we want to apply all scripts
             return file =>
                 file.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)
-                && (
-                    file.Contains("202512061200 Grant access to query execution plan", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains(".Scripts.Model.", StringComparison.OrdinalIgnoreCase));
+                && file.Contains(".Scripts.", StringComparison.OrdinalIgnoreCase);
         }
 
+        // In other environments we do not want to apply scripts located within the "Permissions" folder
         return file =>
             file.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)
-            && file.Contains(".Scripts.Model.", StringComparison.OrdinalIgnoreCase);
+            && file.Contains(".Scripts.", StringComparison.OrdinalIgnoreCase)
+            && !file.Contains(".Permissions.", StringComparison.OrdinalIgnoreCase);
     }
 }

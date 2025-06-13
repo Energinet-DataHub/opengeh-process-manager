@@ -16,9 +16,16 @@ using System.Text.RegularExpressions;
 
 namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Extensibility.DbUp;
 
+/// <summary>
+/// "Type" can be empty because we don't have scripts in a "Model" folder in Process Manager.
+/// If we move them into a folder now, it will change their name as it is stored in the
+/// "SchemaVersions" table, which would mean all scripts would be executed on an already
+/// existing database, and that would fail.
+/// </summary>
 internal static class NamingConvention
 {
     // Matches                                                   {type} {timestamp } {name}
-    // Energinet.DataHub.ProcessManager.DatabaseMigration.Scripts.Model.202103021434 First.sql
-    public static readonly Regex Regex = new Regex(@".*Scripts\.(?<type>Model|Permissions)\.(?<timestamp>\d{12}) (?<name>).*\b.sql");
+    // Energinet.DataHub.ProcessManager.DatabaseMigration.Scripts.202103021434 First.sql
+    // Energinet.DataHub.ProcessManager.DatabaseMigration.Scripts.Permission.202506061200 Second.sql
+    public static readonly Regex Regex = new Regex(@".*Scripts\.(?<type>.*|Permissions)\.(?<timestamp>\d{12}) (?<name>).*\b.sql");
 }

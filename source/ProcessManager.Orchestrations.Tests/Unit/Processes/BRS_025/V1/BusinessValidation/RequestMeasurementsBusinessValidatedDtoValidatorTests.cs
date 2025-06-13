@@ -24,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using NodaTime;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_025.V1.BusinessValidation;
 
@@ -84,7 +85,10 @@ public class RequestMeasurementsBusinessValidatedDtoValidatorTests
         result.Should().ContainSingle();
         result.Single()
             .Message.Should()
-            .Be(PeriodValidationRule.StartDateAfterEndDate(Instant.MinValue, Instant.MaxValue));
+            .Be(
+                PeriodValidationRule.StartDateAfterEndDate(
+                    InstantPattern.General.Parse("2024-01-01T23:00:00Z").Value,
+                    InstantPattern.General.Parse("2023-12-01T23:00:00Z").Value));
 
         result.Single().ErrorCode.Should().Be("E50");
     }

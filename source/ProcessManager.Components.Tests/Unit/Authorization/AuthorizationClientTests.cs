@@ -12,15 +12,79 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.Core.App.Common.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using Energinet.DataHub.ProcessManager.Components.Authorization;
+using Energinet.DataHub.ProcessManager.Components.Authorization.Model;
+using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
+using WireMock.Server;
 using Xunit;
 
 namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Authorization;
 
-public class AuthorizationClientTests
+public class AuthorizationClientTests : IAsyncLifetime
 {
-    [Fact]
-    public void GetAuthorizedPeriodsAsync_WhenSomething_ReturnsSomething()
+    public AuthorizationClientTests()
     {
-        return;
+        MockServer = WireMockServer.Start(port: 8989);
+        Services = new ServiceCollection();
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{AuthorizationClientOptions.SectionName}:{nameof(AuthorizationClientOptions.BaseUrl)}"]
+                    = MockServer.Url,
+            })
+            .Build();
+
+        Services
+            .AddScoped<IConfiguration>(_ => configuration)
+            .AddTokenCredentialProvider();
+
+        AuthorizationClientExtensions.AddAuthorizationClient(Services, configuration);
+
+        //Services.AddAuthorizationClient(configuration);
+        ServiceProvider = Services.BuildServiceProvider();
+        Sut = ServiceProvider.GetRequiredService<IAuthorizationClient>();
+    }
+
+    private IAuthorizationClient Sut { get;  }
+
+    private WireMockServer MockServer { get; set; }
+
+    private ServiceCollection Services { get; }
+
+    private ServiceProvider ServiceProvider { get; }
+
+    [Fact]
+    public async Task Given_GoodResponseFromMarkPart_When_GetAuthorizedPeriodsAsync_Then_ReturnPeriods()
+    {
+        // Arrange
+        var actorNumber = ActorNumber.Create("1234567890123");
+        var actorRole = ActorRole.EnergySupplier;
+        var meteringPointId = new MeteringPointId("123456789012345678");
+        var requestedPeriod = new RequestedPeriod(
+            DateTimeOffset.UtcNow.AddDays(-30),
+            DateTimeOffset.UtcNow);
+
+        // Act
+        var actual = await Sut.GetAuthorizedPeriodsAsync(actorNumber, actorRole, meteringPointId, requestedPeriod);
+
+        actual.Should().AllSatisfy(period => period.MeteringPointId.Should().Be(meteringPointId));
+    }
+
+    public Task InitializeAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DisposeAsync()
+    {
+        throw new NotImplementedException();
     }
 }

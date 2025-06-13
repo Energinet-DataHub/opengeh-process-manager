@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\AccessRights\202512061200 Grant access to query execution plan.sql" />
+    <EmbeddedResource Include="Scripts\Permissions\202512061200 Grant access to query execution plan.sql" />
   </ItemGroup>
 
   <ItemGroup>

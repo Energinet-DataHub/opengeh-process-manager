@@ -64,6 +64,12 @@ public static class DbUpgrader
         command.ExecuteNonQuery();
     }
 
+    /// <summary>
+    /// We do not have a common implementation for handling DB migrations.
+    /// But we do use the same technique for executing a script based on environment
+    /// in both EDI and Process Manager. So if we make changes to this code, we should
+    /// probaly update it in both repositories.
+    /// </summary>
     private static Func<string, bool> GetScriptFilter(string environment)
     {
         if (environment.Contains("DEV") || environment.Contains("TEST"))

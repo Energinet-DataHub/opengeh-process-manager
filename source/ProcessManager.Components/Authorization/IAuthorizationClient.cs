@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Components.Authorization.Model;
 
 namespace Energinet.DataHub.ProcessManager.Components.Authorization;
 
-public interface IAuthorization
+public interface IAuthorizationClient
 {
     /// <summary>
     /// Responsible authorized periods on the metering point for the authorizing the actor.

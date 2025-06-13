@@ -20,9 +20,9 @@ using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Components.Authorization.Model;
 
-public class Authorization(
+public class AuthorizationClient(
     AuthorizationRequestService authorizationRequestService)
-    : IAuthorization
+    : IAuthorizationClient
 {
     private readonly AuthorizationRequestService _authorizationRequestService = authorizationRequestService;
 

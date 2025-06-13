@@ -21,7 +21,6 @@ using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NodaTime;
 using WireMock.Server;
 using Xunit;
 
@@ -80,11 +79,13 @@ public class AuthorizationClientTests : IAsyncLifetime
 
     public Task InitializeAsync()
     {
-        throw new NotImplementedException();
+        MockServer.Reset();
+        return Task.CompletedTask;
     }
 
     public Task DisposeAsync()
     {
-        throw new NotImplementedException();
+        MockServer.Dispose();
+        return Task.CompletedTask;
     }
 }

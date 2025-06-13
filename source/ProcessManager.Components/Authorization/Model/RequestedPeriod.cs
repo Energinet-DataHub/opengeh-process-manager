@@ -12,17 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
+namespace Energinet.DataHub.ProcessManager.Components.Authorization.Model;
 
-public class HttpClientNames
-{
-    /// <summary>
-    /// Http client for enqueuing actor messages.
-    /// </summary>
-    public const string EdiEnqueueActorMessagesClientName = "EdiEnqueueActorMessagesClient";
-
-    /// <summary>
-    /// Http client for authorization requests.
-    ///  </summary>
-    public const string MarkPartAuthorizationClientName = "AuthorizationClient";
-}
+public record RequestedPeriod(
+    DateTimeOffset Start,
+    DateTimeOffset End);

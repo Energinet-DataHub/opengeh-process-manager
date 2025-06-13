@@ -12,27 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Customization;
+namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Helpers;
 
-internal static class EnvironmentParser
+internal static class ConnectionStringParser
 {
-    private static readonly string[] _validEnvironments = [
-        "TEST-001",
-        "TEST-002",
-        "PREPROD-001",
-        "PREPROD-002",
-        "PROD-001",
-        "SANDBOX-002",
-        "DEV-001",
-        "DEV-002",
-        "DEV-003"];
+    /// <summary>
+    /// A default connection string.
+    /// </summary>
+    /// <remarks>
+    /// If you are migrating to SQL Server Express use connection string format "Server=(LocalDb)\\MSSQLLocalDB;..."
+    /// If you are migrating to SQL Server use connection string format "Server=localhost;..."
+    /// </remarks>
+    private const string DefaultConnectionString = "Server=(localdb)\\MSSQLLocalDB;Integrated Security=true;Database=ProcessManager";
 
     public static string Parse(string[] args)
     {
-        ArgumentNullException.ThrowIfNull(args);
-
-        return args.Count() > 1 && _validEnvironments.Contains(args[1].ToUpperInvariant())
-            ? args[1].ToUpperInvariant()
-            : string.Empty;
+        return args.FirstOrDefault() ?? DefaultConnectionString;
     }
 }

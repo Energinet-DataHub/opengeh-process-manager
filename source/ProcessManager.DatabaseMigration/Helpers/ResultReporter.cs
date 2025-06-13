@@ -14,7 +14,7 @@
 
 using DbUp.Engine;
 
-namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Customization;
+namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Helpers;
 
 internal static class ResultReporter
 {

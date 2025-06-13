@@ -85,7 +85,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         var meteringPointId = "123456789012345678";
         Fixture.OrchestrationsAppManager.MockServer.MockGetAggregatedByYearForPeriodHttpResponse(
             meteringPointId: meteringPointId,
-            from: nowToUse.PlusDays(-365)
+            from: nowToUse.PlusYears(-1)
                 .InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"])
                 .ToInstant(),
             to: nowToUse.InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"]).ToInstant());

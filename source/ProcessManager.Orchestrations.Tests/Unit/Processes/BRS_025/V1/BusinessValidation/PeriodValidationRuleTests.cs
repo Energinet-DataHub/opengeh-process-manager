@@ -189,6 +189,28 @@ public class PeriodValidationRuleTests
     }
 
     [Fact]
+    public async Task Given_PeriodIsAYearWithFebruaryLeapYear_When_ValidateAsync_Then_Error()
+    {
+        // Arrange
+        var request = new RequestMeasurementsBusinessValidatedDto(
+            new RequestMeasurementsInputV1(
+                "1234",
+                "1234",
+                "1111111111111",
+                "DDQ",
+                "2222222222222",
+                "2024-02-29T23:00:00Z",
+                "2025-02-28T23:00:00Z"),
+            []);
+
+        // Act
+        var result = await _sut.ValidateAsync(request);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Given_PeriodIsTooOld_When_ValidateAsync_Then_Error()
     {
         // Arrange

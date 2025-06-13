@@ -164,7 +164,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             ActorNumber: EnergySupplier,
             ActorRole: ActorRole.EnergySupplier.Name,
             StartDateTime: "2025-01-07T23:00:00Z",
-            EndDateTime: "2025-04-07T23:00:00Z",
+            EndDateTime: "2025-04-07T22:00:00Z",
             MeteringPointId: meteringPointId);
 
         return new RequestMeasurementsCommandV1(

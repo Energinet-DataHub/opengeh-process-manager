@@ -24,7 +24,7 @@ internal class AuthorizationStep(
     TaskOrchestrationContext context,
     TaskRetryOptions defaultRetryOptions,
     OrchestrationInstanceId instanceId)
-        : StepExecutor<PerformBusinessValidationActivity_Brs_024_V1.ActivityOutput>(
+        : StepExecutor<PerformAuthorizationActivity_Brs_024_V1.ActivityOutput>(
         context,
         defaultRetryOptions,
         instanceId)
@@ -49,4 +49,8 @@ internal class AuthorizationStep(
 
         return new StepOutput(asyncAuthorizationTerminationState, authorizationResult);
     }
+
+    internal record CustomState(
+        bool IsValid,
+        IReadOnlyCollection<ValidationError> ValidationErrors);
 }

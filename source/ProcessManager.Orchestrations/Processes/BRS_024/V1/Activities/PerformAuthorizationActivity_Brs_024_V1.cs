@@ -15,6 +15,7 @@
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Authorization;
 using Energinet.DataHub.ProcessManager.Components.Authorization.Model;
+using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Core.Application.Orchestration;
 using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
@@ -30,6 +31,11 @@ public class PerformAuthorizationActivity_Brs_024_V1(
 {
     private readonly IOrchestrationInstanceProgressRepository _repository = repository;
     private readonly IAuthorization _authorization = authorization;
+    private readonly string _validationErrorText = "Forespørgslen afvises da I ikke er legitim aktør ift. "
+                                                   + "målepunkt eller periode. "
+                                                   + "Det kan skyldes, delegering, ejerskab af netområde eller i ikke må spørge på perioden/"
+                                                   + "The request is denied as you are not an authorized actor for the metering point or the period, "
+                                                   + "it can be because of delegation, ownership of grid area or not permitted to request data for the period.";
 
     [Function(nameof(PerformAuthorizationActivity_Brs_024_V1))]
     public async Task<ActivityOutput> Run(
@@ -51,13 +57,26 @@ public class PerformAuthorizationActivity_Brs_024_V1(
 
         var isAuthorization = validatedPeriods.Count == 0;
 
+        var validationsErrors = new List<ValidationError>();
+
         if (!isAuthorization)
         {
+            validationsErrors.Add(
+                new ValidationError(
+                    ErrorCode: "D44",
+                    Message: _validationErrorText));
+
             var step = orchestrationInstance.GetStep(input.StepSequence);
             step.CustomState.SetFromInstance(new AuthorizationStep.CustomState(
-                IsValid: false));
+                IsValid: false,
+                ValidationErrors: validationsErrors));
             await _repository.UnitOfWork.CommitAsync().ConfigureAwait(false);
         }
+
+        return new ActivityOutput(
+            IsAuthorized: isAuthorization,
+            ValidatedPeriod: validatedPeriods,
+            ValidationsErrors: validationsErrors);
     }
 
     public record ActivityInput(
@@ -66,5 +85,6 @@ public class PerformAuthorizationActivity_Brs_024_V1(
 
     public record ActivityOutput(
         bool IsAuthorized,
-        IReadOnlyCollection<AuthorizedPeriod> ValidatedPeriod);
+        IReadOnlyCollection<AuthorizedPeriod> ValidatedPeriod,
+        IReadOnlyCollection<ValidationError> ValidationsErrors);
 }

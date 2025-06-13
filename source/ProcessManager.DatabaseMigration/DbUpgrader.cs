@@ -16,13 +16,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using DbUp;
 using DbUp.Engine;
+using Energinet.DataHub.ProcessManager.DatabaseMigration.Extensibility.DbUp;
 using Microsoft.Data.SqlClient;
 
 namespace Energinet.DataHub.ProcessManager.DatabaseMigration;
 
 public static class DbUpgrader
 {
-    public static DatabaseUpgradeResult DatabaseUpgrade(string connectionString)
+    public static DatabaseUpgradeResult DatabaseUpgrade(
+        string connectionString,
+        string environment = "")
     {
         EnsureDatabase.For.SqlDatabase(connectionString);
 
@@ -31,16 +34,16 @@ public static class DbUpgrader
         var schemaName = "pm";
         CreateSchema(connectionString, schemaName);
 
-        var upgrader =
-            DeployChanges.To
-                .SqlDatabase(connectionString)
-                .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
-                .LogToConsole()
-                .WithExecutionTimeout(TimeSpan.FromHours(1))
-                .JournalToSqlTable(schemaName, "SchemaVersions")
-                .Build();
+        var upgradeEngine = DeployChanges.To
+            .SqlDatabase(connectionString)
+            .WithScriptNameComparer(new ScriptComparer())
+            .WithScripts(new CustomScriptProvider(Assembly.GetExecutingAssembly(), GetScriptFilter(environment)))
+            .LogToConsole()
+            .WithExecutionTimeout(TimeSpan.FromHours(1))
+            .JournalToSqlTable(schemaName, "SchemaVersions")
+            .Build();
 
-        var result = upgrader.PerformUpgrade();
+        var result = upgradeEngine.PerformUpgrade();
         return result;
     }
 
@@ -59,5 +62,37 @@ public static class DbUpgrader
 
         using var command = new SqlCommand(createProcessManagerSchemaSql, connection);
         command.ExecuteNonQuery();
+    }
+
+    /// <summary>
+    /// We do not have a common implementation for handling DB migrations.
+    /// But we do use the same technique for executing a script based on environment
+    /// in both EDI and Process Manager. So if we make changes to this code, we should
+    /// probaly update it in both repositories.
+    /// </summary>
+    private static Func<string, bool> GetScriptFilter(string environment)
+    {
+        if (environment.Contains("DEV") || environment.Contains("TEST"))
+        {
+            // In DEV and TEST environments we want to apply an additional script
+            return file =>
+                file.Contains("202506131200 Grant access to query execution plan.sql", StringComparison.OrdinalIgnoreCase)
+                || IsModelScriptFile(file);
+        }
+
+        // In other environments we only want to apply "Model" script files
+        return file => IsModelScriptFile(file);
+    }
+
+    /// <summary>
+    /// Based on the filename this method determines if the script is a "Model"
+    /// script file, which is a script file used to create the database schema/model.
+    /// </summary>
+    private static bool IsModelScriptFile(string file)
+    {
+        return
+            file.EndsWith(".sql", StringComparison.OrdinalIgnoreCase)
+            && file.Contains(".Scripts.", StringComparison.OrdinalIgnoreCase)
+            && !file.Contains(".Permissions.", StringComparison.OrdinalIgnoreCase);
     }
 }

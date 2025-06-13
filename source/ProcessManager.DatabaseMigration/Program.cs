@@ -12,35 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.DatabaseMigration.Helpers;
+
 namespace Energinet.DataHub.ProcessManager.DatabaseMigration;
 
 public static class Program
 {
     public static int Main(string[] args)
     {
-        // If you are migrating to SQL Server Express use connection string "Server=(LocalDb)\\MSSQLLocalDB;..."
-        // If you are migrating to SQL Server use connection string "Server=localhost;..."
-        var connectionString =
-            args.FirstOrDefault()
-            ?? "Server=(localdb)\\MSSQLLocalDB;Integrated Security=true;Database=ProcessManager";
+        // First argument must be the connection string
+        var connectionString = ConnectionStringParser.Parse(args);
+        // If environment is specified, it must be the second argument
+        var environment = EnvironmentParser.Parse(args);
 
-        Console.WriteLine($"Performing upgrade on {connectionString}");
-        var result = DbUpgrader.DatabaseUpgrade(connectionString);
+        Console.WriteLine($"Performing upgrade using parameter Environment={environment};");
+        var upgradeResult = DbUpgrader.DatabaseUpgrade(
+            connectionString,
+            environment);
 
-        if (!result.Successful)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(result.Error);
-            Console.ResetColor();
-#if DEBUG
-            Console.ReadLine();
-#endif
-            return -1;
-        }
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Success!");
-        Console.ResetColor();
-        return 0;
+        return ResultReporter.ReportResult(upgradeResult);
     }
 }

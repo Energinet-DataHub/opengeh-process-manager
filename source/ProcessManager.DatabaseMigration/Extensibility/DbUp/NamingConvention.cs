@@ -27,5 +27,5 @@ internal static class NamingConvention
     // Matches                                                   {type} {timestamp } {name}
     // Energinet.DataHub.ProcessManager.DatabaseMigration.Scripts.202103021434 First.sql
     // Energinet.DataHub.ProcessManager.DatabaseMigration.Scripts.Permission.202506061200 Second.sql
-    public static readonly Regex Regex = new Regex(@".*Scripts\.(?<type>.*|Permissions)\.(?<timestamp>\d{12}) (?<name>).*\b.sql");
+    public static readonly Regex Regex = new Regex(@".*Scripts\.(?:(?<type>Permissions)\.)?(?<timestamp>\d{12}) (?<name>).*\b.sql");
 }

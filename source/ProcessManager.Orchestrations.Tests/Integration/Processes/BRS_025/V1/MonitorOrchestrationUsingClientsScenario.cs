@@ -88,8 +88,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             from: nowToUse.PlusDays(-365)
                 .InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"])
                 .ToInstant(),
-            to: nowToUse.InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"]).ToInstant())
-;
+            to: nowToUse.InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"]).ToInstant());
+
         SetupElectricityMarketWireMocking(meteringPointId: meteringPointId);
 
         // Step 1: Start new orchestration instance
@@ -163,8 +163,8 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             TransactionId: Guid.NewGuid().ToString(),
             ActorNumber: EnergySupplier,
             ActorRole: ActorRole.EnergySupplier.Name,
-            StartDateTime: "2025-01-07T22:00:00Z",
-            EndDateTime: "2025-04-07T22:00:00Z",
+            StartDateTime: "2025-01-07T23:00:00Z",
+            EndDateTime: "2025-04-07T23:00:00Z",
             MeteringPointId: meteringPointId);
 
         return new RequestMeasurementsCommandV1(

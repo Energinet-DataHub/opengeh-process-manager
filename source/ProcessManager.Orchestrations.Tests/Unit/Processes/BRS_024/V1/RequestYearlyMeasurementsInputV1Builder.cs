@@ -17,7 +17,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_024.V1;
 
-public class RequestYearlyMeasurementsInputV1Builder
+public class RequestYearlyMeasurementsInputV1Builder()
 {
     private const string ActorMessageId = "MessageId";
     private const string TransactionId = "TransactionId";
@@ -25,7 +25,7 @@ public class RequestYearlyMeasurementsInputV1Builder
     private const string MeteringPointId = "MeteringPointId";
     private const string ReceivedAt = "2024-12-31T23:00Z";
 
-    private readonly string _actorRole = ActorRole.GridAccessProvider.Name;
+    private string _actorRole = ActorRole.EnergySupplier.Name;
 
     public RequestYearlyMeasurementsInputV1 Build()
     {
@@ -36,5 +36,11 @@ public class RequestYearlyMeasurementsInputV1Builder
             ActorRole: _actorRole,
             ReceivedAt: ReceivedAt,
             MeteringPointId: MeteringPointId);
+    }
+
+    public RequestYearlyMeasurementsInputV1Builder WithActorRole(ActorRole actorRole)
+    {
+        _actorRole = actorRole.Name;
+        return this;
     }
 }

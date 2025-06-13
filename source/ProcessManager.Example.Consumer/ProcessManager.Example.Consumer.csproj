@@ -11,8 +11,12 @@
   <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="Energinet.DataHub.Core.Messaging" Version="7.1.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.1" />
-        <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="15.5.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.72.0">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.4" />
+        <PackageReference Include="Energinet.DataHub.Core.App.FunctionApp" Version="15.6.1" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\ProcessManager.Client\ProcessManager.Client.csproj" />

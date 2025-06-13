@@ -76,7 +76,7 @@ public static class DbUpgrader
         {
             // In DEV and TEST environments we want to apply an additional script
             return file =>
-                file.Contains("202512061200 Grant access to query execution plan.sql", StringComparison.OrdinalIgnoreCase)
+                file.Contains("202506131200 Grant access to query execution plan.sql", StringComparison.OrdinalIgnoreCase)
                 || IsModelScriptFile(file);
         }
 

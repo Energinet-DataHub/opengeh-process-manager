@@ -14,7 +14,7 @@
 
 using System.Text.RegularExpressions;
 
-namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Customization;
+namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Extensibility.DbUp;
 
 internal static class NamingConvention
 {

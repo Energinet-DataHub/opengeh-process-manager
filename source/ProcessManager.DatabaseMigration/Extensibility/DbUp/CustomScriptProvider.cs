@@ -17,7 +17,7 @@ using DbUp.Engine;
 using DbUp.Engine.Transactions;
 using DbUp.ScriptProviders;
 
-namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Customization;
+namespace Energinet.DataHub.ProcessManager.DatabaseMigration.Extensibility.DbUp;
 
 internal class CustomScriptProvider : EmbeddedScriptProvider, IScriptProvider
 {

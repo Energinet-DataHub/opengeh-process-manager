@@ -23,25 +23,34 @@ namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.B
 public sealed class PeriodValidationRule(PeriodValidator periodValidator)
     : IBusinessValidationRule<RequestMeasurementsBusinessValidatedDto>
 {
-    public const string MissingStartOrEndDate =
-        "Start og slutdato skal være udfyldt / Start and end date are required";
-
-    public const string InvalidStartOrEnDate =
-        "Start og slutdato skal være gyldige datoer / Start and end date must be valid dates";
-
-    public const string StartDateAfterEndDate =
-        "Startdato skal være før slutdato / Start date must be before end date";
-
-    public const string StartOrEndDateAreNotMidnight =
-        "Start og slutdato skal være midnat / Start and end date must be at midnight";
-
-    public const string PeriodIsTooLong =
-        "Det er kun tilladt at anmode om data for 1 år ad gangen / It is only allowed to request data for 1 year at a time";
-
-    public const string PeriodIsTooOld =
-        "Det er ikke tilladt at anmode om data for mere end 3 år siden / It is not allowed to request data older than 3 years";
+    private const int MaxAllowedPeriodSizeInMonths = 12;
+    private const int MaxAgeOfDataInYears = 3;
 
     private readonly PeriodValidator _periodValidator = periodValidator;
+
+    public static string MissingEndDate() =>
+        "Slutdatoen skal være udfyldt / The end date is required";
+
+    public static string InvalidStartDate(string date) =>
+        $"Startdatoen '{date}' skal være en gyldig dato / The start date '{date}' must be a valid date";
+
+    public static string InvalidEndDate(string date) =>
+        $"Slutdatoen '{date}' skal være en gyldig dato / The end date '{date}' must be valid a date";
+
+    public static string StartDateAfterEndDate(Instant start, Instant end) =>
+        $"Startdatoen '{start}' skal være før slutdatoen '{end}' / The start date '{start}' must be before the end date '{end}'";
+
+    public static string StartDateIsNotMidnight(Instant start) =>
+        $"Startdatoen '{start}' skal være ved midnat / The start date '{start}' must be at midnight";
+
+    public static string EndDateIsNotMidnight(Instant end) =>
+        $"Slutdatoen '{end}' skal være ved midnat / The end date '{end}' must be at midnight";
+
+    public static string PeriodIsTooLong(Period period) =>
+        $"Det er kun tilladt at anmode om data for {MaxAllowedPeriodSizeInMonths} måneder af gangen, men der blev anmodet om {period.Months} måneder og {period.Days} dag(e) / It is only allowed to request data for {MaxAllowedPeriodSizeInMonths} months at a time, but {period.Months} months and {period.Days} day(s) was requested";
+
+    public static string PeriodIsTooOld() =>
+        "Det er ikke tilladt at anmode om data for mere end 3 år siden / It is not allowed to request data older than 3 years";
 
     public Task<IList<ValidationError>> ValidateAsync(RequestMeasurementsBusinessValidatedDto subject)
     {
@@ -49,20 +58,32 @@ public sealed class PeriodValidationRule(PeriodValidator periodValidator)
 
         if (subject.Input.EndDateTime is null)
         {
-            errors.Add(new(MissingStartOrEndDate, "E50"));
+            errors.Add(new(MissingEndDate(), "E50"));
             return Task.FromResult<IList<ValidationError>>(errors);
         }
 
         var startDateParseResult = InstantPattern.General.Parse(subject.Input.StartDateTime);
         var endDateParseResult = InstantPattern.General.Parse(subject.Input.EndDateTime);
 
-        if (!startDateParseResult.Success || !endDateParseResult.Success)
+        if (!startDateParseResult.Success)
         {
             errors.Add(
                 new(
-                    InvalidStartOrEnDate,
+                    InvalidStartDate(subject.Input.StartDateTime),
                     "E50"));
+        }
 
+        if (!endDateParseResult.Success)
+        {
+            errors.Add(
+                new(
+                    InvalidEndDate(subject.Input.EndDateTime),
+                    "E50"));
+        }
+
+        // If either date is invalid, we can return early as we cannot proceed with validation
+        if (errors.Any())
+        {
             return Task.FromResult<IList<ValidationError>>(errors);
         }
 
@@ -71,27 +92,37 @@ public sealed class PeriodValidationRule(PeriodValidator periodValidator)
 
         if (startDate > endDate)
         {
-            errors.Add(new(StartDateAfterEndDate, "E50"));
+            errors.Add(new(StartDateAfterEndDate(startDate, endDate), "E50"));
         }
 
-        if (!_periodValidator.IsMidnight(startDate, out _) || !_periodValidator.IsMidnight(endDate, out _))
+        if (!_periodValidator.IsMidnight(startDate, out _))
         {
-            errors.Add(new(StartOrEndDateAreNotMidnight, "E50"));
+            errors.Add(new(StartDateIsNotMidnight(startDate), "E50"));
         }
 
-        if (_periodValidator.IntervalMustBeLessThanAllowedPeriodSize(startDate, endDate, 12))
+        if (!_periodValidator.IsMidnight(endDate, out _))
         {
+            errors.Add(new(EndDateIsNotMidnight(endDate), "E50"));
+        }
+
+        if (_periodValidator.IntervalMustBeLessThanAllowedPeriodSize(startDate, endDate, MaxAllowedPeriodSizeInMonths))
+        {
+            var period = Period.Between(
+                startDate.InUtc().LocalDateTime,
+                endDate.InUtc().LocalDateTime,
+                PeriodUnits.Months | PeriodUnits.Days);
+
             errors.Add(
                 new(
-                    PeriodIsTooLong,
+                    PeriodIsTooLong(period),
                     "E50"));
         }
 
-        if (_periodValidator.IsDateOlderThanAllowed(startDate, 3, 0))
+        if (_periodValidator.IsDateOlderThanAllowed(startDate, MaxAgeOfDataInYears, 0))
         {
             errors.Add(
                 new(
-                    PeriodIsTooOld,
+                    PeriodIsTooOld(),
                     "E50"));
         }
 

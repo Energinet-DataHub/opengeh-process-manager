@@ -19,6 +19,7 @@ using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_025.V1.Model
 using FluentAssertions;
 using Moq;
 using NodaTime;
+using NodaTime.Text;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Tests.Unit.Processes.BRS_025.V1.BusinessValidation;
 
@@ -26,10 +27,8 @@ public class PeriodValidationRuleTests
 {
     private readonly PeriodValidationRule _sut = GetPeriodValidationRule(Instant.FromUtc(2025, 1, 1, 0, 0, 0));
 
-    [Theory]
-    [InlineData("monkeykitten", "2024-01-31T00:00:00Z")]
-    [InlineData("2024-01-01T00:00:00Z", "2024-42-01T00:00:00Z")]
-    public async Task Given_InvalidStartAndEndDate_When_ValidateAsync_Then_Error(string startDate, string endDate)
+    [Fact]
+    public async Task Given_InvalidStartDate_When_ValidateAsync_Then_Error()
     {
         // Arrange
         var request = new RequestMeasurementsBusinessValidatedDto(
@@ -39,8 +38,8 @@ public class PeriodValidationRuleTests
                 "1111111111111",
                 "DDQ",
                 "2222222222222",
-                startDate,
-                endDate),
+                "monkeykitten",
+                "2024-01-31T00:00:00Z"),
             []);
 
         // Act
@@ -48,8 +47,59 @@ public class PeriodValidationRuleTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Single().Message.Should().Be(PeriodValidationRule.InvalidStartOrEnDate);
+        result.Single().Message.Should().Be(PeriodValidationRule.InvalidStartDate("monkeykitten"));
         result.Single().ErrorCode.Should().Be("E50");
+    }
+
+    [Fact]
+    public async Task Given_InvalidEndDate_When_ValidateAsync_Then_Error()
+    {
+        // Arrange
+        var request = new RequestMeasurementsBusinessValidatedDto(
+            new RequestMeasurementsInputV1(
+                "1234",
+                "1234",
+                "1111111111111",
+                "DDQ",
+                "2222222222222",
+                "2024-01-01T00:00:00Z",
+                "2024-42-31T00:00:00Z"),
+            []);
+
+        // Act
+        var result = await _sut.ValidateAsync(request);
+
+        // Assert
+        result.Should().ContainSingle();
+        result.Single().Message.Should().Be(PeriodValidationRule.InvalidEndDate("2024-42-31T00:00:00Z"));
+        result.Single().ErrorCode.Should().Be("E50");
+    }
+
+    [Fact]
+    public async Task Given_InvalidStartAndEndDate_When_ValidateAsync_Then_Error()
+    {
+        // Arrange
+        var request = new RequestMeasurementsBusinessValidatedDto(
+            new RequestMeasurementsInputV1(
+                "1234",
+                "1234",
+                "1111111111111",
+                "DDQ",
+                "2222222222222",
+                "monkeykitten",
+                "2024-42-31T00:00:00Z"),
+            []);
+
+        // Act
+        var result = await _sut.ValidateAsync(request);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.OrderBy(e => e.Message)
+            .Should()
+            .SatisfyRespectively(
+                e => e.Message.Should().Be(PeriodValidationRule.InvalidEndDate("2024-42-31T00:00:00Z")),
+                e => e.Message.Should().Be(PeriodValidationRule.InvalidStartDate("monkeykitten")));
     }
 
     [Fact]
@@ -72,7 +122,7 @@ public class PeriodValidationRuleTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Single().Message.Should().Be(PeriodValidationRule.MissingStartOrEndDate);
+        result.Single().Message.Should().Be(PeriodValidationRule.MissingEndDate());
         result.Single().ErrorCode.Should().Be("E50");
     }
 
@@ -96,7 +146,13 @@ public class PeriodValidationRuleTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Single().Message.Should().Be(PeriodValidationRule.StartDateAfterEndDate);
+        result.Single()
+            .Message.Should()
+            .Be(
+                PeriodValidationRule.StartDateAfterEndDate(
+                    InstantPattern.General.Parse("2024-01-01T23:00:00Z").Value,
+                    InstantPattern.General.Parse("2023-12-01T23:00:00Z").Value));
+
         result.Single().ErrorCode.Should().Be("E50");
     }
 
@@ -120,7 +176,15 @@ public class PeriodValidationRuleTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Single().Message.Should().Be(PeriodValidationRule.PeriodIsTooLong);
+        result.Single()
+            .Message.Should()
+            .Be(
+                PeriodValidationRule.PeriodIsTooLong(
+                    Period.Between(
+                        new LocalDate(2023, 1, 1),
+                        new LocalDate(2024, 1, 2),
+                        PeriodUnits.Months | PeriodUnits.Days)));
+
         result.Single().ErrorCode.Should().Be("E50");
     }
 
@@ -144,16 +208,12 @@ public class PeriodValidationRuleTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Single().Message.Should().Be(PeriodValidationRule.PeriodIsTooOld);
+        result.Single().Message.Should().Be(PeriodValidationRule.PeriodIsTooOld());
         result.Single().ErrorCode.Should().Be("E50");
     }
 
-    [Theory]
-    [InlineData("2024-01-01T20:00:00Z", "2024-02-01T23:00:00Z")]
-    [InlineData("2024-01-01T23:00:00Z", "2024-02-02T22:55:00Z")]
-    public async Task Given_StartOrEndDateIsNotMidnight_When_ValidateAsync_Then_Error(
-        string startDate,
-        string endDate)
+    [Fact]
+    public async Task Given_StartDateIsNotMidnight_When_ValidateAsync_Then_Error()
     {
         // Arrange
         var request = new RequestMeasurementsBusinessValidatedDto(
@@ -163,8 +223,8 @@ public class PeriodValidationRuleTests
                 "1111111111111",
                 "DDQ",
                 "2222222222222",
-                startDate,
-                endDate),
+                "2024-01-01T20:00:00Z",
+                "2024-02-01T23:00:00Z"),
             []);
 
         // Act
@@ -172,8 +232,73 @@ public class PeriodValidationRuleTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Single().Message.Should().Be(PeriodValidationRule.StartOrEndDateAreNotMidnight);
+        result.Single()
+            .Message.Should()
+            .Be(
+                PeriodValidationRule.StartDateIsNotMidnight(
+                    InstantPattern.General.Parse("2024-01-01T20:00:00Z").Value));
+
         result.Single().ErrorCode.Should().Be("E50");
+    }
+
+    [Fact]
+    public async Task Given_EndDateIsNotMidnight_When_ValidateAsync_Then_Error()
+    {
+        // Arrange
+        var request = new RequestMeasurementsBusinessValidatedDto(
+            new RequestMeasurementsInputV1(
+                "1234",
+                "1234",
+                "1111111111111",
+                "DDQ",
+                "2222222222222",
+                "2024-01-01T23:00:00Z",
+                "2024-02-01T22:55:00Z"),
+            []);
+
+        // Act
+        var result = await _sut.ValidateAsync(request);
+
+        // Assert
+        result.Should().ContainSingle();
+        result.Single()
+            .Message.Should()
+            .Be(PeriodValidationRule.EndDateIsNotMidnight(InstantPattern.General.Parse("2024-02-01T22:55:00Z").Value));
+
+        result.Single().ErrorCode.Should().Be("E50");
+    }
+
+    [Fact]
+    public async Task Given_StartAndEndDateAreNotMidnight_When_ValidateAsync_Then_Error()
+    {
+        // Arrange
+        var request = new RequestMeasurementsBusinessValidatedDto(
+            new RequestMeasurementsInputV1(
+                "1234",
+                "1234",
+                "1111111111111",
+                "DDQ",
+                "2222222222222",
+                "2024-01-01T20:00:00Z",
+                "2024-02-01T22:55:00Z"),
+            []);
+
+        // Act
+        var result = await _sut.ValidateAsync(request);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.OrderBy(e => e.Message)
+            .Should()
+            .SatisfyRespectively(
+                e => e.Message.Should()
+                    .Be(
+                        PeriodValidationRule.EndDateIsNotMidnight(
+                            InstantPattern.General.Parse("2024-02-01T22:55:00Z").Value)),
+                e => e.Message.Should()
+                    .Be(
+                        PeriodValidationRule.StartDateIsNotMidnight(
+                            InstantPattern.General.Parse("2024-01-01T20:00:00Z").Value)));
     }
 
     private static PeriodValidationRule GetPeriodValidationRule(Instant now)

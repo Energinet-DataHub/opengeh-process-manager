@@ -82,7 +82,10 @@ public class RequestMeasurementsBusinessValidatedDtoValidatorTests
 
         // Assert
         result.Should().ContainSingle();
-        result.Single().Message.Should().Be(PeriodValidationRule.StartDateAfterEndDate);
+        result.Single()
+            .Message.Should()
+            .Be(PeriodValidationRule.StartDateAfterEndDate(Instant.MinValue, Instant.MaxValue));
+
         result.Single().ErrorCode.Should().Be("E50");
     }
 }

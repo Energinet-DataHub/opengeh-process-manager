@@ -14,4 +14,6 @@
 
 namespace Energinet.DataHub.ProcessManager.Components.Authorization.Model;
 
-public record RequestedPeriod;
+public record RequestedPeriod(
+    DateTimeOffset Start,
+    DateTimeOffset End);

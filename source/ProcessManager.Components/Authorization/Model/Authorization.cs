@@ -12,18 +12,86 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.MarketParticipant.Authorization.Model;
+using Energinet.DataHub.MarketParticipant.Authorization.Model.AccessValidationRequests;
+using Energinet.DataHub.MarketParticipant.Authorization.Services;
 using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
+using NodaTime.Extensions;
 
 namespace Energinet.DataHub.ProcessManager.Components.Authorization.Model;
 
-public class Authorization : IAuthorization
+public class Authorization(
+    AuthorizationRequestService authorizationRequestService)
+    : IAuthorization
 {
-    public Task<IReadOnlyCollection<AuthorizedPeriod>> GetAuthorizedPeriodsAsync(
+    private readonly AuthorizationRequestService _authorizationRequestService = authorizationRequestService;
+
+    public async Task<IReadOnlyCollection<AuthorizedPeriod>> GetAuthorizedPeriodsAsync(
         ActorNumber actorNumber,
         ActorRole actorRole,
         MeteringPointId meteringPointId,
         RequestedPeriod requestedPeriod)
     {
-        throw new NotImplementedException();
+        var period = new AccessPeriod(
+                MeteringPointId: meteringPointId.Value,
+                FromDate: requestedPeriod.Start,
+                ToDate: requestedPeriod.End);
+
+        var authRequest = new MeasurementsAccessValidationRequest
+        {
+                MeteringPointId = meteringPointId.Value,
+                ActorNumber = actorNumber.Value,
+                MarketRole = MapActorRole(actorRole),
+                RequestedPeriod = period,
+        };
+
+        Signature? signature = null;
+        try
+        {
+            signature = await _authorizationRequestService.RequestSignatureAsync(authRequest).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // TODO: Update this
+            throw new InvalidOperationException(
+                $"Failed to request authorization signature for actor {actorNumber} with role {actorRole} on metering point {meteringPointId}.",
+                ex);
+        }
+
+        if (signature.AccessPeriods == null)
+        {
+            // TODO: Update this
+            throw new InvalidOperationException("Access periods cannot be null in the signature.");
+        }
+
+        var periods = signature.AccessPeriods.Select(CreatePeriod);
+        return periods.ToList().AsReadOnly();
+    }
+
+    private EicFunction MapActorRole(ActorRole role)
+    {
+        return role switch
+        {
+            var r when r == ActorRole.MeteringPointAdministrator => EicFunction.MeteringPointAdministrator,
+            var r when r == ActorRole.EnergySupplier => EicFunction.EnergySupplier,
+            var r when r == ActorRole.GridAccessProvider => EicFunction.GridAccessProvider,
+            var r when r == ActorRole.MeteredDataAdministrator => EicFunction.MeteredDataAdministrator,
+            var r when r == ActorRole.MeteredDataResponsible => EicFunction.MeteredDataResponsible,
+            var r when r == ActorRole.BalanceResponsibleParty => EicFunction.BalanceResponsibleParty,
+            var r when r == ActorRole.ImbalanceSettlementResponsible => EicFunction.ImbalanceSettlementResponsible,
+            var r when r == ActorRole.SystemOperator => EicFunction.SystemOperator,
+            var r when r == ActorRole.DanishEnergyAgency => EicFunction.DanishEnergyAgency,
+            var r when r == ActorRole.Delegated => EicFunction.Delegated,
+            var r when r == ActorRole.DataHubAdministrator => EicFunction.DataHubAdministrator,
+            _ => throw new ArgumentOutOfRangeException(nameof(role), $"Unsupported actor role: {role}"),
+        };
+    }
+
+    private AuthorizedPeriod CreatePeriod(AccessPeriod period)
+    {
+        return new AuthorizedPeriod(
+            MeteringPointId: new MeteringPointId(period.MeteringPointId),
+            Start: period.FromDate.ToInstant(),
+            End: period.ToDate.ToInstant());
     }
 }

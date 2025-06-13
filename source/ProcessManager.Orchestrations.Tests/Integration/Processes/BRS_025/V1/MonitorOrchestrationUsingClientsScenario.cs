@@ -78,12 +78,18 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
     {
         // Setting up mock
         var now = SystemClock.Instance.GetCurrentInstant();
+        var nowToUse = now.InUtc()
+            .WithZone(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"])
+            .LocalDateTime.Date.AtMidnight();
+
         var meteringPointId = "123456789012345678";
         Fixture.OrchestrationsAppManager.MockServer.MockGetAggregatedByYearForPeriodHttpResponse(
             meteringPointId: meteringPointId,
-            from: now.PlusDays(-365),
-            to: now)
-;
+            from: nowToUse.PlusYears(-1)
+                .InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"])
+                .ToInstant(),
+            to: nowToUse.InZoneStrictly(DateTimeZoneProviders.Tzdb["Europe/Copenhagen"]).ToInstant());
+
         SetupElectricityMarketWireMocking(meteringPointId: meteringPointId);
 
         // Step 1: Start new orchestration instance
@@ -157,7 +163,7 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
             TransactionId: Guid.NewGuid().ToString(),
             ActorNumber: EnergySupplier,
             ActorRole: ActorRole.EnergySupplier.Name,
-            StartDateTime: "2025-01-07T22:00:00Z",
+            StartDateTime: "2025-01-07T23:00:00Z",
             EndDateTime: "2025-04-07T22:00:00Z",
             MeteringPointId: meteringPointId);
 

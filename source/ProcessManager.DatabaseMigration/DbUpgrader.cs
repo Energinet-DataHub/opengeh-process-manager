@@ -16,7 +16,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using DbUp;
 using DbUp.Engine;
-using Energinet.DataHub.ProcessManager.DatabaseMigration.Customization;
+using Energinet.DataHub.ProcessManager.DatabaseMigration.Extensibility.DbUp;
 using Microsoft.Data.SqlClient;
 
 namespace Energinet.DataHub.ProcessManager.DatabaseMigration;

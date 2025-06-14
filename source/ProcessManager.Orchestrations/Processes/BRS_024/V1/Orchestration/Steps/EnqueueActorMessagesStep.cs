@@ -29,7 +29,7 @@ internal class EnqueueActorMessagesStep(
         : StepExecutor(context, defaultRetryOptions, instanceId)
 {
     internal const string StepDescription = "Udsend beskeder";
-    internal const int StepSequence = 2;
+    internal const int StepSequence = 3;
 
     private readonly TimeSpan _actorMessagesEnqueuedTimeout = actorMessagesEnqueuedTimeout;
 

@@ -57,6 +57,12 @@ public class Orchestration_Brs_024_V1
                 orchestrationInstanceContext.Id)
             .ExecuteAsync();
 
+        var authenticatedSignature = await new AuthorizationStep(
+                context,
+                _defaultRetryOptions,
+                orchestrationInstanceContext.Id)
+            .ExecuteAsync();
+
         await new EnqueueActorMessagesStep(
                 context,
                 _defaultRetryOptions,

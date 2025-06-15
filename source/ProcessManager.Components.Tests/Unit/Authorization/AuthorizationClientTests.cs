@@ -38,7 +38,7 @@ public class AuthorizationClientTests : IAsyncLifetime
 
     public AuthorizationClientTests()
     {
-        MockServer = WireMockServer.Start(port: 8989);
+        MockServer = WireMockServer.Start(port: 8888);
         Services = new ServiceCollection();
 
         var configuration = new ConfigurationBuilder()

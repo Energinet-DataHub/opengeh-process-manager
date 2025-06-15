@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Energinet.DataHub.ProcessManager.Abstractions.Core.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.Abstractions.ValueObjects;
 using Energinet.DataHub.ProcessManager.Components.BusinessValidation;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
@@ -78,5 +79,25 @@ public class RequestYearlyMeasurementsBusinessValidationTests
         result.Should()
             .ContainSingle()
             .And.BeEquivalentTo(MeteringPointTypeValidationRule.WrongMeteringPointTypeError);
+    }
+
+    [Fact]
+    public async Task Given_InvalidActorRole_When_Validate_Then_ValidationError()
+    {
+        var input = new RequestYearlyMeasurementsInputV1Builder()
+            .WithActorRole(ActorRole.GridAccessProvider)
+            .Build();
+
+        var meteringPointMasterData = new MeteringPointMasterDataBuilder()
+            .BuildFromInput(input);
+
+        var result = await _sut.ValidateAsync(
+            new RequestYearlyMeasurementsBusinessValidatedDto(
+                Input: input,
+                MeteringPointMasterData: meteringPointMasterData));
+
+        result.Should()
+            .ContainSingle()
+            .And.BeEquivalentTo(ActorRoleValidationRule.WrongActorRoleError);
     }
 }

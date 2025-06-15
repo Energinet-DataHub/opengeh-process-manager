@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using NodaTime;
+
 namespace Energinet.DataHub.ProcessManager.Components.Authorization.Model;
 
-public record AuthorizedPeriod;
+public record AuthorizedPeriod(
+    MeteringPointId MeteringPointId,
+    Instant Start,
+    Instant End);

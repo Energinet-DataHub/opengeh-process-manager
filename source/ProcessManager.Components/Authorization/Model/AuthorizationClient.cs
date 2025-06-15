@@ -50,18 +50,16 @@ public class AuthorizationClient(
         {
             signature = await _authorizationRequestService.RequestSignatureAsync(authRequest).ConfigureAwait(false);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            // TODO: Update this
-            throw new InvalidOperationException(
-                $"Failed to request authorization signature for actor {actorNumber} with role {actorRole} on metering point {meteringPointId}.",
-                ex);
+            // TODO: Do we want to log this?
+            return new List<AuthorizedPeriod>();
         }
 
         if (signature.AccessPeriods == null)
         {
-            // TODO: Update this
-            throw new InvalidOperationException("Access periods cannot be null in the signature.");
+            // TODO: Do we want to log this?
+            return new List<AuthorizedPeriod>();
         }
 
         var periods = signature.AccessPeriods.Select(CreatePeriod);

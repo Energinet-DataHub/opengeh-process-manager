@@ -18,6 +18,7 @@ using Energinet.DataHub.ProcessManager.Components.Authorization;
 using Energinet.DataHub.ProcessManager.Components.Authorization.Model;
 using Energinet.DataHub.ProcessManager.Components.Extensions.DependencyInjection;
 using Energinet.DataHub.ProcessManager.Components.Extensions.Options;
+using Energinet.DataHub.ProcessManager.Shared.Tests.Fixtures.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,13 @@ namespace Energinet.DataHub.ProcessManager.Components.Tests.Unit.Authorization;
 
 public class AuthorizationClientTests : IAsyncLifetime
 {
+    private readonly ActorNumber _actorNumber = ActorNumber.Create("1234567890123");
+    private readonly ActorRole _actorRole = ActorRole.EnergySupplier;
+    private readonly MeteringPointId _meteringPointId = new MeteringPointId("123456789012345678");
+    private readonly RequestedPeriod _requestedPeriod = new RequestedPeriod(
+        DateTimeOffset.UtcNow.AddDays(-30),
+        DateTimeOffset.UtcNow);
+
     public AuthorizationClientTests()
     {
         MockServer = WireMockServer.Start(port: 8989);
@@ -54,27 +62,52 @@ public class AuthorizationClientTests : IAsyncLifetime
 
     private IAuthorizationClient Sut { get;  }
 
-    private WireMockServer MockServer { get; set; }
+    private WireMockServer MockServer { get; }
 
     private ServiceCollection Services { get; }
 
     private ServiceProvider ServiceProvider { get; }
 
     [Fact]
-    public async Task Given_GoodResponseFromMarkPart_When_GetAuthorizedPeriodsAsync_Then_ReturnPeriods()
+    public async Task Given_GoodResponse_When_GetAuthorizedPeriodsAsync_Then_ReturnPeriods()
     {
         // Arrange
-        var actorNumber = ActorNumber.Create("1234567890123");
-        var actorRole = ActorRole.EnergySupplier;
-        var meteringPointId = new MeteringPointId("123456789012345678");
-        var requestedPeriod = new RequestedPeriod(
-            DateTimeOffset.UtcNow.AddDays(-30),
-            DateTimeOffset.UtcNow);
+        MockServer.MockGetAuthorizedPeriodsAsync(
+            numberOfPeriods: 1,
+            meteringPointId: _meteringPointId.Value);
 
         // Act
-        var actual = await Sut.GetAuthorizedPeriodsAsync(actorNumber, actorRole, meteringPointId, requestedPeriod);
+        var actual = await Sut.GetAuthorizedPeriodsAsync(
+            _actorNumber,
+            _actorRole,
+            _meteringPointId,
+            _requestedPeriod);
 
-        actual.Should().AllSatisfy(period => period.MeteringPointId.Should().Be(meteringPointId));
+        actual.Should().ContainSingle().Subject.MeteringPointId.Should().Be(_meteringPointId);
+    }
+
+    /// <summary>
+    /// I'm unable to make:
+    /// .ReadFromJsonAsync<Signature/>() (ignore / at the end)
+    /// .ConfigureAwait(false) ?? throw new InvalidOperationException("Failed to deserialize signature response content");
+    /// fail in the AuthorizationRequestService. Since I cant test the use case described
+    /// </summary>
+    [Fact]
+    public async Task Given_GoodResponseWithNoPeriod_When_GetAuthorizedPeriodsAsync_Then_ReturnNoPeriods()
+    {
+        // Arrange
+        MockServer.MockGetAuthorizedPeriodsAsync(
+            numberOfPeriods: 0,
+            meteringPointId: _meteringPointId.Value);
+
+        // Act
+        var actual = await Sut.GetAuthorizedPeriodsAsync(
+            _actorNumber,
+            _actorRole,
+            _meteringPointId,
+            _requestedPeriod);
+
+        actual.Should().BeEmpty();
     }
 
     public Task InitializeAsync()

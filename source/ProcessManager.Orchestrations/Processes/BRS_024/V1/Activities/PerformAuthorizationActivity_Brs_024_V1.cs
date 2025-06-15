@@ -21,6 +21,7 @@ using Energinet.DataHub.ProcessManager.Core.Domain.OrchestrationInstance;
 using Energinet.DataHub.ProcessManager.Orchestrations.Abstractions.Processes.BRS_024.V1.Model;
 using Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Orchestration.Steps;
 using Microsoft.Azure.Functions.Worker;
+using NodaTime.Text;
 using MeteringPointId = Energinet.DataHub.ProcessManager.Components.Authorization.Model.MeteringPointId;
 
 namespace Energinet.DataHub.ProcessManager.Orchestrations.Processes.BRS_024.V1.Activities;
@@ -47,12 +48,16 @@ public class PerformAuthorizationActivity_Brs_024_V1(
 
         var orchestrationInstanceInput = orchestrationInstance.ParameterValue.AsType<RequestYearlyMeasurementsInputV1>();
 
+        var receivedAt = InstantPattern.General.Parse(orchestrationInstanceInput.ReceivedAt).Value;
+
         var validatedPeriods = await _authorization
             .GetAuthorizedPeriodsAsync(
                 actorNumber: ActorNumber.Create(orchestrationInstanceInput.ActorNumber),
                 actorRole: ActorRole.FromName(orchestrationInstanceInput.ActorRole),
                 meteringPointId: new MeteringPointId(orchestrationInstanceInput.MeteringPointId),
-                requestedPeriod: new RequestedPeriod())
+                requestedPeriod: new RequestedPeriod(
+                    Start: receivedAt.ToDateTimeOffset(), // TODO: Update these values
+                    End: receivedAt.ToDateTimeOffset()))
             .ConfigureAwait(false);
 
         var isAuthorization = validatedPeriods.Count == 0;

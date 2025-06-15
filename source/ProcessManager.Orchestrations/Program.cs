@@ -45,6 +45,7 @@ var host = new HostBuilder()
         services.AddServiceBusClientForApplication(
             context.Configuration,
             sp => sp.GetRequiredService<TokenCredentialProvider>().Credential);
+
         // => Feature management
         services
             .AddAzureAppConfiguration()
@@ -75,6 +76,7 @@ var host = new HostBuilder()
 
         // ProcessManager
         services.AddProcessManagerTopic();
+
         // => Auto register Orchestration Descriptions builders and custom handlers
         services.AddProcessManagerForOrchestrations(typeof(Program).Assembly, context.Configuration);
 
@@ -83,6 +85,9 @@ var host = new HostBuilder()
 
         // Client to retrieve measurements
         Energinet.DataHub.Measurements.Client.Extensions.DependencyInjection.ClientExtensions.AddMeasurementsClient(services);
+
+        // Client to get authenticate periods for actor requests
+        AuthorizationClientExtensions.AddAuthorizationClient(services, context.Configuration);
     })
     .ConfigureFunctionsWebApplication(builder =>
     {

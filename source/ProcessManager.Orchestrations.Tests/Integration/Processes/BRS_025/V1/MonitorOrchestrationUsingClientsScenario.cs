@@ -79,6 +79,11 @@ public class MonitorOrchestrationUsingClientsScenario : IAsyncLifetime
         // Setting up mock
         var now = SystemClock.Instance.GetCurrentInstant();
         var meteringPointId = "123456789012345678";
+        Fixture.OrchestrationsAppManager.MockServer.MockGetAuthorizedPeriodsAsync(
+            meteringPointId: meteringPointId,
+            numberOfPeriods: 1);
+
+        // TODO: This should not be "ByYear"
         Fixture.OrchestrationsAppManager.MockServer.MockGetAggregatedByYearForPeriodHttpResponse(
             meteringPointId: meteringPointId,
             from: now.PlusDays(-365),

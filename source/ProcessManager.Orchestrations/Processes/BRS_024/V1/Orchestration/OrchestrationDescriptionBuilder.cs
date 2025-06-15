@@ -35,6 +35,7 @@ public class OrchestrationDescriptionBuilder : IOrchestrationDescriptionBuilder
         description.ParameterDefinition.SetFromType<RequestYearlyMeasurementsInputV1>();
 
         description.AppendStepDescription(BusinessValidationStep.StepDescription);
+        description.AppendStepDescription(AuthorizationStep.StepDescription);
         description.AppendStepDescription(EnqueueActorMessagesStep.StepDescription);
 
         description.IsUnderDevelopment = true;
